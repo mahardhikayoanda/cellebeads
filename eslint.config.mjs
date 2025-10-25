@@ -1,17 +1,14 @@
 // File: eslint.config.mjs
+import next from 'eslint-config-next/core-web-vitals';
 
-import next from 'eslint-config-next/core-web-vitals'
-
-// Buat konfigurasi baru
-const config = [
-  // Mulai dengan konfigurasi default dari Next.js
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export default [
+  // Terapkan konfigurasi default Next.js
   next,
 
-  // Tambahkan konfigurasi kustom KITA di sini
+  // Tambahkan aturan kustom kita
   {
     rules: {
-      // --- INI ADALAH PERBAIKANNYA ---
-
       // 1. Matikan error untuk 'any' type (yang menyebabkan build gagal)
       "@typescript-eslint/no-explicit-any": "off",
 
@@ -20,5 +17,3 @@ const config = [
     }
   }
 ];
-
-export default config;
