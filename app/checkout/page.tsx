@@ -1,18 +1,30 @@
 // File: app/checkout/page.tsx
-import dynamic from 'next/dynamic';
 
-// Impor komponen page.tsx secara dinamis dan matikan Server-Side Rendering (SSR)
-const CheckoutPageClient = dynamic(
-  () => import('./CheckoutPageClient'), 
-  { 
-    ssr: false, // <-- INI ADALAH KUNCINYA
+'use client'; // <-- INI ADALAH KUNCI UTAMA
 
-    // Tampilkan ini saat halaman sedang loading
-    loading: () => <p style={{textAlign: 'center', padding: '50px'}}>Memuat Keranjang...</p>
-  }
-);
+// Langsung import semua yang kita butuh di sini
+import CheckoutForm from "./CheckoutForm";
+import { useCart } from "@/context/CartContext";
+import Link from "next/link";
 
 export default function CheckoutPage() {
-  // Halaman server ini sekarang hanya me-render loader dinamis
-  return <CheckoutPageClient />;
+  // Karena file ini sekarang 'use client', 
+  // memanggil useCart() di sini 100% aman dan tidak akan error di server.
+  const { cartItems } = useCart();
+
+  return (
+    <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #555', borderRadius: '8px' }}>
+      {cartItems.length === 0 ? (
+        <div style={{ textAlign: 'center' }}>
+          <h2>Keranjang Anda Kosong</h2>
+          <p>Silakan kembali ke katalog untuk berbelanja.</p>
+          <Link href="/products" style={{ color: 'lightblue' }}>
+            Kembali ke Katalog
+          </Link>
+        </div>
+      ) : (
+        <CheckoutForm />
+      )}
+    </div>
+  );
 }
