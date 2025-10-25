@@ -12,13 +12,22 @@ export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
+
+      // --- INI PERBAIKANNYA ---
+      // Kita harus mendefinisikan field apa saja yang kita harapkan
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      // ------------------------
+
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Email dan Password wajib diisi');
         }
 
         await dbConnect();
-        
+
         const user = await User.findOne({ email: credentials.email });
 
         if (user && (await user.matchPassword(credentials.password))) {
@@ -45,6 +54,7 @@ export const authOptions: AuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
+        session.user.id = token.id; // Duplikat, perbaiki
         session.user.role = token.role;
       }
       return session;
