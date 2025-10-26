@@ -2,13 +2,22 @@
 import type { NextConfig } from "next";
 
 const config: NextConfig = {
-  // Opsi lain mungkin ada di sini...
-
-  // --- INI PERBAIKANNYA ---
-  // Beritahu Next.js untuk tidak menjalankan linter saat build
-  // Ini akan mengabaikan error "Unexpected array"
+  // Ini dari perbaikan kita sebelumnya, JANGAN DIHAPUS
   eslint: {
     ignoreDuringBuilds: true,
+  },
+
+  // --- TAMBAHKAN BLOK INI ---
+  // Ini memberi tahu Next.js bahwa gambar dari Vercel Blob aman
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'w302ieewdugquuzl.public.blob.vercel-storage.com', // <-- Diambil dari log error Anda
+        port: '',
+        pathname: '/**', // Izinkan semua gambar dari host ini
+      },
+    ],
   },
   // -------------------------
 };

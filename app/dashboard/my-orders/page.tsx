@@ -1,6 +1,7 @@
 // File: app/dashboard/my-orders/page.tsx
 import { getMyOrders } from './actions';
-import { IOrder } from '@/app/admin/orders/actions'; // Pakai ulang tipe IOrder
+import { IOrder } from '@/app/admin/orders/actions'; 
+import OrderActionsClient from './OrderActionsClient'; // <-- 1. Import komponen baru
 
 export default async function MyOrdersPage() {
   const orders: IOrder[] = await getMyOrders();
@@ -24,12 +25,8 @@ export default async function MyOrdersPage() {
               <td style={{ border: '1px solid #555', padding: '8px' }}>Rp {order.totalPrice.toLocaleString('id-ID')}</td>
               <td style={{ border: '1px solid #555', padding: '8px' }}>{order.status}</td>
               <td style={{ border: '1px solid #555', padding: '8px' }}>
-                {/* TODO: Tambah tombol 'Pesanan Diterima' & 'Beri Rating' */}
-                {order.status === 'processed' && (
-                  <button style={{ backgroundColor: 'green', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>
-                    Pesanan Diterima
-                  </button>
-                )}
+                {/* 2. Ganti tombol lama dengan komponen baru */}
+                <OrderActionsClient order={order} />
               </td>
             </tr>
           ))}

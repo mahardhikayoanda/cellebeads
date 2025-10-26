@@ -1,85 +1,82 @@
 'use client'; 
 
-import { useRef } from 'react';
+import { useState } from 'react'; // <-- 1. IMPORT useState
 import { createProduct } from './actions'; 
 
 export default function ProductForm() {
-  const formRef = useRef<HTMLFormElement>(null);
+  // 2. Tambahkan state untuk loading
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleSubmit = async (formData: FormData) => {
-    const result = await createProduct(formData);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Mencegah refresh halaman
+    setIsLoading(true); // Mulai loading
+
+    // 3. Buat FormData langsung dari form event
+    const formData = new FormData(e.currentTarget); 
+    
+    const result = await createProduct(formData); // Kirim form ke Server Action
+
+    setIsLoading(false); // Selesai loading
+
     if (result.success) {
       alert(result.message);
-      formRef.current?.reset(); 
+      e.currentTarget.reset(); // Reset form jika berhasil
     } else {
       alert(`Error: ${result.message}`);
     }
   };
 
-  // --- STYLE DIPERBAIKI DI BAWAH INI ---
+  // Style input
   const inputStyle: React.CSSProperties = {
     width: '100%',
-    color: 'white', // Teks menjadi putih
-    backgroundColor: '#333', // Background menjadi abu-abu gelap
+    color: 'white',
+    backgroundColor: '#333',
     padding: '8px',
     border: '1px solid #555',
     borderRadius: '4px',
-    boxSizing: 'border-box' // Penting agar padding tidak merusak layout
+    boxSizing: 'border-box'
   };
-  // ------------------------------------
 
   return (
-    <form ref={formRef} action={handleSubmit} style={{ marginBottom: '20px', padding: '20px', border: '1px solid #555' }}>
+    // 4. Hapus 'action', ganti dengan 'onSubmit'
+    <form onSubmit={handleSubmit} style={{ marginBottom: '20px', padding: '20px', border: '1px solid #555' }}>
       <h2>Tambah Produk Baru</h2>
       <div style={{ marginBottom: '10px' }}>
         <label>Nama Produk: </label>
-        <input 
-          name="name" 
-          placeholder="Nama Produk" 
-          required 
-          style={inputStyle} // Terapkan style baru
-        />
+        <input name="name" placeholder="Nama Produk" required style={inputStyle} />
       </div>
       <div style={{ marginBottom: '10px' }}>
         <label>Deskripsi: </label>
-        <textarea 
-          name="description" 
-          placeholder="Deskripsi" 
-          required 
-          style={{...inputStyle, minHeight: '80px'}} // Terapkan style baru
-        />
+        <textarea name="description" placeholder="Deskripsi" required style={{...inputStyle, minHeight: '80px'}} />
       </div>
       <div style={{ marginBottom: '10px' }}>
         <label>Harga: </label>
-        <input 
-          name="price" 
-          type="number" 
-          placeholder="Harga (cth: 50000)" 
-          required 
-          style={inputStyle} // Terapkan style baru
-        />
+        <input name="price" type="number" placeholder="Harga (cth: 50000)" required style={inputStyle} />
       </div>
       <div style={{ marginBottom: '10px' }}>
         <label>Stok: </label>
-        <input 
-          name="stock" 
-          type="number" 
-          placeholder="Stok (cth: 10)" 
-          required 
-          style={inputStyle} // Terapkan style baru
-        />
+        <input name="stock" type="number" placeholder="Stok (cth: 10)" required style={inputStyle} />
       </div>
+      
+      {/* --- INI YANG BERUBAH --- */}
       <div style={{ marginBottom: '10px' }}>
-        <label>URL Gambar: </label>
+        <label>Gambar Produk: </label>
         <input 
           name="image" 
-          placeholder="httpsData:image/png;base64,..." 
+          type="file" // <-- 5. UBAH MENJADI 'file'
+          accept="image/*" // Hanya izinkan file gambar
           required 
-          style={inputStyle} // Terapkan style baru
+          style={inputStyle} 
         />
       </div>
-      <button type="submit" style={{ padding: '10px', backgroundColor: 'blue', color: 'white', border: 'none', borderRadius: '4px' }}>
-        Tambah Produk
+      {/* ------------------------ */}
+
+      <button 
+        type="submit" 
+        disabled={isLoading} // Tombol disable saat loading
+        style={{ padding: '10px', backgroundColor: 'blue', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+      >
+        {isLoading ? 'Mengupload...' : 'Tambah Produk'} 
       </button>
     </form>
   );

@@ -1,33 +1,27 @@
 // File: app/admin/products/page.tsx
-// Ini adalah Server Component, jadi kita bisa langsung ambil data
 
-import { getProducts } from './actions';
+// 1. Import tipe data dan fungsi dari actions
+import { getProducts, IProduct } from './actions';
 import ProductForm from './ProductForm';
-
-// Tipe data untuk produk (sesuaikan dengan model Mongoose Anda)
-interface IProduct {
-  _id: string;
-  name: string;
-  price: number;
-  stock: number;
-}
+// 2. Import komponen tombol aksi
+import ProductActions from './ProductActions';
+import Image from 'next/image'; // Import Image
 
 export default async function AdminProductsPage() {
-  // 1. Ambil data produk langsung di server
+  // 3. Ambil data produk (sekarang menggunakan tipe IProduct)
   const products: IProduct[] = await getProducts();
 
   return (
     <div style={{ padding: '20px' }}>
       <h1>Dashboard Admin - Kelola Produk</h1>
       
-      {/* 2. Tampilkan Form (Client Component) */}
       <ProductForm />
 
-      {/* 3. Tampilkan Daftar Produk */}
       <h2>Daftar Produk Saat Ini</h2>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ backgroundColor: '#333' }}>
+            <th style={{ border: '1px solid #555', padding: '8px' }}>Gambar</th>
             <th style={{ border: '1px solid #555', padding: '8px' }}>Nama</th>
             <th style={{ border: '1px solid #555', padding: '8px' }}>Harga</th>
             <th style={{ border: '1px solid #555', padding: '8px' }}>Stok</th>
@@ -37,16 +31,31 @@ export default async function AdminProductsPage() {
         <tbody>
           {products.map((product) => (
             <tr key={product._id}>
+              {/* Tambahkan kolom gambar */}
+              <td style={{ border: '1px solid #555', padding: '8px', textAlign: 'center' }}>
+                <Image 
+                  src={product.image} 
+                  alt={product.name}
+                  width={60}
+                  height={60}
+                  style={{ objectFit: 'cover', borderRadius: '4px' }}
+                />
+              </td>
               <td style={{ border: '1px solid #555', padding: '8px' }}>{product.name}</td>
               <td style={{ border: '1px solid #555', padding: '8px' }}>Rp {product.price.toLocaleString('id-ID')}</td>
               <td style={{ border: '1px solid #555', padding: '8px' }}>{product.stock}</td>
-              <td style={{ border: '1px solid #555', padding: '8px' }}>
-                {/* TODO: Buat tombol Edit/Delete */}
-                <button style={{ marginRight: '5px', backgroundColor: 'orange' }}>Edit</button>
-                <button style={{ backgroundColor: 'red' }}>Hapus</button>
-              </td>
+              
+              {/* 4. Ganti tombol lama dengan komponen baru */}
+              <ProductActions product={product} />
             </tr>
           ))}
+          {products.length === 0 && (
+            <tr>
+              <td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>
+                Belum ada produk.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
