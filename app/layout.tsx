@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppSessionProvider>
           <CartProvider>
             <Navbar /> 
-            <main className="container mx-auto px-4 py-8 flex-grow">
+            <main className="container mx-auto px-4 py-8 grow">
               {children}
             </main>
             <footer className="bg-white border-t border-stone-200 mt-12 py-6"> {/* Footer mungkin perlu diupdate warnanya */}

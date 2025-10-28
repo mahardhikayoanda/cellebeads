@@ -15,7 +15,7 @@ export default function AdminLayout({
       {/* Sidebar Navigasi Admin */}
       <aside className="w-64 bg-gray-800 text-gray-300 p-6 border-r border-gray-700 flex flex-col">
         <h2 className="text-xl font-semibold text-white mb-8">Admin Dashboard</h2>
-        <nav className="flex-grow">
+        <nav className="grow">
           <ul>
             <li className="mb-4">
               <Link href="/admin/products" className="flex items-center p-2 rounded hover:bg-gray-700 hover:text-white transition-colors">

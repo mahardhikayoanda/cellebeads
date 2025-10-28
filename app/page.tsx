@@ -11,7 +11,7 @@ export default async function HomePage() {
   return (
     <div>
       {/* --- Hero Section --- */}
-      <section className="relative bg-gradient-to-r from-rose-50 to-stone-50 rounded-lg shadow-md overflow-hidden mb-12 py-20 px-8 text-center md:text-left md:flex md:items-center">
+      <section className="relative bg-linear-to-r from-rose-50 to-stone-50 rounded-lg shadow-md overflow-hidden mb-12 py-20 px-8 text-center md:text-left md:flex md:items-center">
         <div className="md:w-1/2 relative z-10">
           <h1 className="text-4xl md:text-5xl font-lora font-medium text-stone-800 mb-4 leading-tight">
             Temukan Kilau Sempurna Anda

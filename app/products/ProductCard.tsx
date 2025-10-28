@@ -25,9 +25,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         />
       </div>
       
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-4 flex flex-col grow">
         <h3 className="text-lg font-lora font-medium text-stone-800 mb-2">{product.name}</h3>
-        <p className="text-gray-500 text-sm mb-4 flex-grow">
+        <p className="text-gray-500 text-sm mb-4 grow">
           {product.description.substring(0, 100)}...
         </p>
         <p className="text-lg font-bold text-stone-900 mb-2">

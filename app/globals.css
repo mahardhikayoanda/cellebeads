@@ -1,9 +1,7 @@
 /* File: app/globals.css */
 
 /* 1. Impor dasar Tailwind */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
 /* 2. Definisikan variabel warna shadcn */
 @layer base {
