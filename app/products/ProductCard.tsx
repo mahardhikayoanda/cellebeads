@@ -1,25 +1,14 @@
-'use client'; // Karena ada tombol 'onClick'
+// File: app/products/ProductCard.tsx
+'use client';
 
 import { useCart } from '@/context/CartContext';
-// import Image from 'next/image'; // Opsional jika Anda ingin menampilkan gambar
+import Image from 'next/image';
+// 1. IMPORT KOMPONEN BUTTON BARU ANDA
+import { Button } from "@/components/ui/button"; 
 
-// Tipe data untuk props product
-interface IProduct {
-  _id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  image: string;
-}
-
-interface ProductCardProps {
-  product: IProduct;
-}
+// ... (interface IProduct, interface ProductCardProps) ...
 
 export default function ProductCard({ product }: ProductCardProps) {
-  // Ambil fungsi addToCart dari context
-  // Ini sekarang akan berhasil karena '@/context/CartContext' sudah benar
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
@@ -28,26 +17,39 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div style={{ border: '1px solid #555', padding: '15px', borderRadius: '8px', width: '250px' }}>
-      {/* <Image 
-        src={product.image} 
-        alt={product.name} 
-        width={250} 
-        height={250} 
-        style={{ objectFit: 'cover' }} 
-      /> 
-      */}
-      <h3 style={{ fontSize: '1.2rem', margin: '10px 0' }}>{product.name}</h3>
-      <p style={{ color: '#aaa', fontSize: '0.9rem', minHeight: '40px' }}>{product.description.substring(0, 50)}...</p>
-      <p style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Rp {product.price.toLocaleString('id-ID')}</p>
-      <p style={{ fontSize: '0.9rem' }}>Stok: {product.stock}</p>
-      <button 
-        onClick={handleAddToCart} 
-        disabled={product.stock === 0}
-        style={{ width: '100%', padding: '10px', backgroundColor: 'green', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '10px' }}
-      >
-        {product.stock === 0 ? 'Stok Habis' : '+ Keranjang'}
-      </button>
+    <div className="bg-white border border-stone-200 rounded-lg shadow-md overflow-hidden flex flex-col group transition-shadow hover:shadow-xl">
+      <div className="relative w-full h-64 overflow-hidden">
+        <Image 
+          src={product.image} alt={product.name} layout="fill" objectFit="cover"
+          className="transition-transform duration-300 ease-in-out group-hover:scale-105"
+        />
+      </div>
+      
+      <div className="p-4 flex flex-col flex-grow">
+        <h3 className="text-lg font-lora font-medium text-stone-800 mb-2">{product.name}</h3>
+        <p className="text-gray-500 text-sm mb-4 flex-grow">
+          {product.description.substring(0, 100)}...
+        </p>
+        <p className="text-lg font-bold text-stone-900 mb-2">
+          Rp {product.price.toLocaleString('id-ID')}
+        </p>
+        <p className="text-sm text-gray-400 mb-4">
+          Stok: {product.stock}
+        </p>
+        
+        {/* --- GANTI TOMBOL LAMA DENGAN KOMPONEN BARU --- */}
+        <Button 
+          onClick={handleAddToCart} 
+          disabled={product.stock === 0}
+          // Anda bisa menambahkan variant (misal: "secondary", "destructive") atau size
+          className="w-full mt-auto" // ClassName tambahan jika perlu
+          variant={product.stock === 0 ? "secondary" : "default"} // Contoh ganti variant
+        >
+          {product.stock === 0 ? 'Stok Habis' : '+ Keranjang'}
+        </Button>
+        {/* ------------------------------------------- */}
+
+      </div>
     </div>
   );
 }

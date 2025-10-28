@@ -1,3 +1,4 @@
+// File: app/login/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -13,64 +14,55 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
+    e.preventDefault(); setError(''); setLoading(true);
     try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: email,
-        password: password,
-      });
-
-      if (result?.error) {
-        setError(result.error);
-        setLoading(false);
-      } else {
-        alert('Login berhasil!');
-        router.push('/');
-      }
-    } catch (err) {
-      setError('Terjadi kesalahan koneksi');
-    } finally {
-        setLoading(false);
-    }
+      const result = await signIn('credentials', { redirect: false, email, password });
+      if (result?.error) { setError(result.error); } 
+      else { alert('Login berhasil!'); router.push('/'); }
+    } catch (err) { setError('Terjadi kesalahan koneksi'); } 
+    finally { setLoading(false); }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h1>Login</h1>
+    // Form putih di tengah
+    <div className="max-w-md mx-auto mt-10 p-8 bg-white rounded-lg shadow-md border border-stone-200">
+      <h1 className="text-3xl font-lora font-medium text-stone-800 mb-6 text-center">Login</h1>
       <form onSubmit={handleSubmit}>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="email">Email</label>
+        {error && <p className="mb-4 text-red-500 text-sm">{error}</p>}
+        
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-sm font-medium text-stone-600 mb-1">Email</label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+            id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            // Style Input
+            className="w-full bg-white border-stone-300 text-stone-800 rounded-md p-2 shadow-sm focus:ring-rose-500 focus:border-rose-500"
             required
           />
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="password">Password</label>
+        
+        <div className="mb-6">
+          <label htmlFor="password" className="block text-sm font-medium text-stone-600 mb-1">Password</label>
           <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+            id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+            // Style Input
+            className="w-full bg-white border-stone-300 text-stone-800 rounded-md p-2 shadow-sm focus:ring-rose-500 focus:border-rose-500"
             required
           />
         </div>
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: 'green', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+        
+        <button type="submit" disabled={loading} 
+          // Style Tombol
+          className="w-full py-2 px-4 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-md shadow-md transition-colors disabled:opacity-50"
+        >
           {loading ? 'Loading...' : 'Login'}
         </button>
       </form>
-      <p style={{ marginTop: '15px', textAlign: 'center' }}>
-        Belum punya akun? <Link href="/register" style={{ color: 'blue' }}>Daftar di sini</Link>
+      
+      <p className="mt-6 text-center text-sm text-stone-600">
+        Belum punya akun?{' '}
+        <Link href="/register" className="font-medium text-rose-500 hover:text-rose-400">
+          Daftar di sini
+        </Link>
       </p>
     </div>
   );

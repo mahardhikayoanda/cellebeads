@@ -1,35 +1,27 @@
 // File: app/products/page.tsx
-// Ini adalah Server Component
+import { getProducts, IProduct } from '@/app/admin/products/actions';
+import ProductCard from './ProductCard'; 
 
-import { getProducts } from '@/app/admin/products/actions'; // Kita pakai ulang Server Action admin
-import ProductCard from './ProductCard'; // Import komponen .tsx kita
-
-// Tipe data untuk produk
-interface IProduct {
-  _id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  image: string;
-}
+// ... (Interface IProduct) ...
 
 export default async function ProductsPage() {
   const products: IProduct[] = await getProducts();
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Katalog Produk</h1>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
-        {products.length > 0 ? (
-          products.map(product => (
-            // Sekarang ini akan meng-import ProductCard.tsx
+    <div>
+      {/* Judul dengan font Lora */}
+      <h1 className="text-3xl font-lora font-medium text-stone-800 mb-8">Katalog Produk</h1>
+      
+      {products.length > 0 ? (
+        // Grid responsif
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map(product => (
             <ProductCard key={product._id} product={product} />
-          ))
-        ) : (
-          <p>Belum ada produk.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-stone-500">Belum ada produk. Silakan cek kembali nanti.</p>
+      )}
     </div>
   );
 }
