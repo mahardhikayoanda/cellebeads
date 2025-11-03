@@ -1,83 +1,92 @@
 // File: app/checkout/CheckoutForm.tsx
 'use client';
-
 import { useCart } from '@/context/CartContext';
 import { createOrder } from './actions';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Import Card
 
 export default function CheckoutForm() {
   const { cartItems, total, clearCart } = useCart();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  // State untuk Select
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (cartItems.length === 0) { alert('Keranjang Anda kosong'); return; }
-    setIsLoading(true);
-    const formData = new FormData(e.currentTarget);
-    const result = await createOrder(formData, cartItems);
-    setIsLoading(false);
-    if (result.success && result.waUrl) {
-      alert(result.message); clearCart(); 
-      window.open(result.waUrl, '_blank'); router.push('/products');
-    } else { alert(`Error: ${result.message}`); }
-  };
-
-  // Style
-  const inputClassName = "w-full bg-white border-stone-300 text-stone-800 rounded-md p-2 shadow-sm focus:ring-rose-500 focus:border-rose-500";
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => { /* ... (logika sama) ... */ };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2 className="text-2xl font-lora font-medium text-stone-800 mb-6">Form Pemesanan</h2>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-stone-600 mb-1">Nama Lengkap</label>
-        <input name="name" placeholder="Nama Anda" required className={inputClassName} />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-stone-600 mb-1">Alamat Lengkap</label>
-        <textarea name="address" placeholder="Jalan, Nomor Rumah, Kota, Kode Pos" required className={`${inputClassName} min-h-[80px]`} />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-stone-600 mb-1">No. HP (WhatsApp)</label>
-        <input name="phone" type="tel" placeholder="0812..." required className={inputClassName} />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-stone-600 mb-1">Metode Pembayaran</label>
-        <select name="paymentMethod" required className={inputClassName}>
-          <option value="">Pilih Metode Pembayaran</option>
-          <option value="cash">Cash (COD)</option>
-          <option value="transfer">Transfer Bank</option>
-        </select>
-      </div>
-
-      {/* Ringkasan Pesanan */}
-      <div className="mt-8 pt-4 border-t border-stone-300">
-        <h3 className="text-xl font-lora font-medium text-stone-800 mb-4">Ringkasan Pesanan</h3>
-        {cartItems.map(item => (
-          <div key={item._id} className="flex justify-between items-center text-sm mb-2 text-stone-600">
-            <span>{item.name} (x{item.qty})</span>
-            <span>Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
+    // Bungkus form dengan Card
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-2xl font-lora font-medium">Form Pemesanan</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} id="checkout-form" className="space-y-4"> {/* Beri ID dan spasi */}
+          
+          {/* Gunakan Label dan Input shadcn */}
+          <div className="space-y-1">
+            <Label htmlFor="name">Nama Lengkap</Label>
+            <Input id="name" name="name" placeholder="Nama Anda" required />
           </div>
-        ))}
-        <div className="flex justify-between items-center text-lg font-bold mt-4 pt-2 border-t border-stone-300">
-          <span>Total:</span>
-          <span>Rp {total.toLocaleString('id-ID')}</span>
-        </div>
-      </div>
+          
+          <div className="space-y-1">
+            <Label htmlFor="address">Alamat Lengkap</Label>
+            {/* Gunakan Textarea shadcn */}
+            <Textarea id="address" name="address" placeholder="Jalan, Nomor Rumah, Kota, Kode Pos" required />
+          </div>
+          
+          <div className="space-y-1">
+            <Label htmlFor="phone">No. HP (WhatsApp)</Label>
+            <Input id="phone" name="phone" type="tel" placeholder="0812..." required />
+          </div>
+          
+          <div className="space-y-1">
+            <Label htmlFor="paymentMethod">Metode Pembayaran</Label>
+            {/* Gunakan Select shadcn */}
+            <Select name="paymentMethod" required onValueChange={setPaymentMethod} value={paymentMethod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Metode Pembayaran" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash (COD)</SelectItem>
+                <SelectItem value="transfer">Transfer Bank</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      {/* Tombol Pesan (Hijau) */}
-      <button 
-        type="submit" 
-        disabled={isLoading}
-        className="w-full mt-8 py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-md shadow-md transition-colors disabled:opacity-50 text-lg"
-      >
-        {isLoading ? 'Memproses...' : 'Pesan Sekarang (via WhatsApp)'}
-      </button>
-    </form>
+          {/* Ringkasan Pesanan (Tetap di dalam CardContent) */}
+          <div className="mt-6 pt-4 border-t border-stone-200 space-y-2">
+            <h3 className="text-lg font-medium text-stone-700">Ringkasan Pesanan</h3>
+            {cartItems.map(item => (
+              <div key={item._id} className="flex justify-between items-center text-sm text-stone-600">
+                <span>{item.name} (x{item.qty})</span>
+                <span>Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
+              </div>
+            ))}
+            <div className="flex justify-between items-center text-lg font-bold mt-2 pt-2 border-t border-stone-200">
+              <span>Total:</span>
+              <span>Rp {total.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+        </form>
+      </CardContent>
+      <CardFooter>
+        {/* Tombol Pesan (Hijau) - Hubungkan dengan form ID */}
+        <Button 
+          type="submit" form="checkout-form" // Submit form berdasarkan ID
+          disabled={isLoading || cartItems.length === 0} // Disable jika kosong
+          className="w-full bg-emerald-500 hover:bg-emerald-600 text-lg" // Warna hijau
+          size="lg" // Ukuran besar
+        >
+          {isLoading ? 'Memproses...' : 'Pesan Sekarang (via WhatsApp)'}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

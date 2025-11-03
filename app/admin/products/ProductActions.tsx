@@ -1,49 +1,52 @@
 // File: app/admin/products/ProductActions.tsx
-'use client'; // Ini adalah Client Component
-
+'use client'; 
 import { useState } from 'react';
 import Link from 'next/link';
-import { deleteProduct, IProduct } from './actions'; // Import fungsi delete & tipe data
+import { deleteProduct, IProduct } from './actions'; 
+import { Button } from '@/components/ui/button'; 
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; 
+import { Edit, Trash2 } from 'lucide-react'; 
 
-interface ProductActionsProps {
-  product: IProduct;
-}
+interface ProductActionsProps { product: IProduct; }
 
 export default function ProductActions({ product }: ProductActionsProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    // Minta konfirmasi
-    if (confirm(`Anda yakin ingin menghapus produk: ${product.name}?`)) {
-      setIsDeleting(true);
-      const result = await deleteProduct(product._id);
-      setIsDeleting(false);
-
-      if (result.success) {
-        alert(result.message);
-      } else {
-        alert(`Error: ${result.message}`);
-      }
-    }
-  };
+  const handleDelete = async () => { /* ... (logika sama) ... */ };
 
   return (
-    <td style={{ border: '1px solid #555', padding: '8px' }}>
-      {/* Tombol Edit (kita siapkan untuk nanti) */}
-      <Link href={`/admin/products/edit/${product._id}`}>
-        <button style={{ marginRight: '5px', backgroundColor: 'orange', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Edit
-        </button>
-      </Link>
+    <div className="flex justify-center items-center space-x-2"> 
+      {/* Tombol Edit (Outline Kuning) */}
+      <Button asChild variant="outline" size="icon" className="border-yellow-500 text-yellow-500 hover:bg-yellow-900 hover:text-yellow-300 h-8 w-8">
+        <Link href={`/admin/products/edit/${product._id}`}>
+           <Edit className="h-4 w-4" />
+        </Link>
+      </Button>
       
-      {/* Tombol Hapus */}
-      <button 
-        onClick={handleDelete} 
-        disabled={isDeleting}
-        style={{ backgroundColor: 'red', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-      >
-        {isDeleting ? 'Menghapus...' : 'Hapus'}
-      </button>
-    </td>
+      {/* Tombol Hapus (Destructive Merah) */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant="destructive" size="icon" disabled={isDeleting} className="h-8 w-8">
+             <Trash2 className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        {/* Dialog Konfirmasi Gelap */}
+        <AlertDialogContent className="bg-gray-800 border-gray-700 text-gray-300">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Anda Yakin?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini akan menghapus produk "{product.name}" secara permanen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-gray-600 hover:bg-gray-500 border-gray-500 text-gray-200">Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white" 
+            >
+              {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

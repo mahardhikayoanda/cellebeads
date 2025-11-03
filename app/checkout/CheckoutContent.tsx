@@ -1,26 +1,31 @@
 // File: app/checkout/CheckoutContent.tsx
-'use client'; // Ini adalah komponen Client
-
+'use client'; 
 import CheckoutForm from "./CheckoutForm";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Import Card
+import { Button } from "@/components/ui/button";
 
 export default function CheckoutContent() {
-  // Panggil useCart() di sini, ini 100% aman
   const { cartItems } = useCart();
 
   return (
-    <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #555', borderRadius: '8px' }}>
+    <div className="max-w-xl mx-auto"> {/* Batasi lebar */}
       {cartItems.length === 0 ? (
-        <div style={{ textAlign: 'center' }}>
-          <h2>Keranjang Anda Kosong</h2>
-          <p>Silakan kembali ke katalog untuk berbelanja.</p>
-          <Link href="/products" style={{ color: 'lightblue' }}>
-            Kembali ke Katalog
-          </Link>
-        </div>
+        // Gunakan Card untuk pesan keranjang kosong
+        <Card className="text-center">
+          <CardHeader>
+             <CardTitle className="text-2xl font-lora">Keranjang Anda Kosong</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-stone-600 mb-6">Silakan kembali ke katalog untuk berbelanja.</p>
+            <Button asChild className="bg-rose-500 hover:bg-rose-600">
+              <Link href="/products">Kembali ke Katalog</Link>
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <CheckoutForm />
+        <CheckoutForm /> // Form sudah dibungkus Card
       )}
     </div>
   );

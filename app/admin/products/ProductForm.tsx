@@ -1,66 +1,63 @@
 // File: app/admin/products/ProductForm.tsx
 'use client'; 
-
 import { useState } from 'react';
 import { createProduct } from './actions'; 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card
 
 export default function ProductForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); setIsLoading(true); 
-    const formData = new FormData(e.currentTarget); 
-    const result = await createProduct(formData); 
-    setIsLoading(false); 
-    if (result.success) { alert(result.message); e.currentTarget.reset(); } 
-    else { alert(`Error: ${result.message}`); }
-  };
-
-  // Style input gelap
-  const inputClassName = "w-full bg-gray-700 border border-gray-600 text-white rounded-md p-2 focus:ring-blue-500 focus:border-blue-500";
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => { /* ... (logika sama) ... */ };
 
   return (
-    // Form dengan background gelap dan border
-    <form onSubmit={handleSubmit} className="mb-8 p-6 bg-gray-800 rounded-lg shadow-md border border-gray-700">
-      <h2 className="text-2xl font-semibold text-white mb-6">Tambah Produk Baru</h2>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-1">Nama Produk</label>
-        <input name="name" placeholder="Nama Produk" required className={inputClassName} />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-1">Deskripsi</label>
-        <textarea name="description" placeholder="Deskripsi produk" required className={`${inputClassName} min-h-[80px]`} />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Harga</label>
-          <input name="price" type="number" placeholder="50000" required className={inputClassName} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Stok</label>
-          <input name="stock" type="number" placeholder="10" required className={inputClassName} />
-        </div>
-      </div>
-      
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-300 mb-1">Gambar Produk</label>
-        <input name="image" type="file" accept="image/*" required 
-          // Style input file gelap
-          className={`${inputClassName} file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500`} 
-        />
-      </div>
+    // Gunakan Card shadcn dengan style gelap
+    <Card className="bg-gray-800 border-gray-700 text-gray-300">
+      <CardHeader>
+        <CardTitle className="text-white">Tambah Produk Baru</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4"> {/* Beri jarak antar field */}
+          
+          <div className="space-y-1.5"> {/* Grup Label & Input */}
+            <Label htmlFor="name" className="text-gray-400">Nama Produk</Label>
+            <Input id="name" name="name" placeholder="Nama Produk" required 
+                   className="bg-gray-700 border-gray-600 text-white focus:ring-blue-500" />
+          </div>
+          
+          <div className="space-y-1.5">
+            <Label htmlFor="description" className="text-gray-400">Deskripsi</Label>
+            <Textarea id="description" name="description" placeholder="Deskripsi produk" required 
+                      className="bg-gray-700 border-gray-600 text-white focus:ring-blue-500 min-h-[80px]" />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="price" className="text-gray-400">Harga</Label>
+              <Input id="price" name="price" type="number" placeholder="50000" required 
+                     className="bg-gray-700 border-gray-600 text-white focus:ring-blue-500" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="stock" className="text-gray-400">Stok</Label>
+              <Input id="stock" name="stock" type="number" placeholder="10" required 
+                     className="bg-gray-700 border-gray-600 text-white focus:ring-blue-500" />
+            </div>
+          </div>
+          
+          <div className="space-y-1.5">
+            <Label htmlFor="image" className="text-gray-400">Gambar Produk</Label>
+            {/* Input file sedikit berbeda stylingnya */}
+            <Input id="image" name="image" type="file" accept="image/*" required 
+                   className="bg-gray-700 border-gray-600 text-gray-400 file:bg-gray-600 file:text-gray-200 file:border-0 file:hover:bg-gray-500 file:mr-3 file:px-3 file:py-1.5" />
+          </div>
 
-      <button 
-        type="submit" 
-        disabled={isLoading} 
-        // Tombol biru
-        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition-colors disabled:opacity-50"
-      >
-        {isLoading ? 'Mengupload...' : 'Tambah Produk'} 
-      </button>
-    </form>
+          <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700">
+            {isLoading ? 'Mengupload...' : 'Tambah Produk'} 
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

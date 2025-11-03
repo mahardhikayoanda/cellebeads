@@ -1,10 +1,13 @@
 // File: app/login/page.tsx
 'use client';
-
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Button } from "@/components/ui/button"; 
+import { Input } from "@/components/ui/input";   
+import { Label } from "@/components/ui/label";   
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
 
 export default function LoginPage() {
   const [email, setEmail] = useState<string>('');
@@ -13,57 +16,88 @@ export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
+  // --- LOGIKA HANDLE SUBMIT DIMASUKKAN KEMBALI ---
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault(); 
+    console.log("--- Handle Submit Start ---"); // LOG 1
+    setError(''); 
+    setLoading(true);
+
     try {
-      const result = await signIn('credentials', { redirect: false, email, password });
-      if (result?.error) { setError(result.error); } 
-      else { alert('Login berhasil!'); router.push('/'); }
-    } catch (err) { setError('Terjadi kesalahan koneksi'); } 
-    finally { setLoading(false); }
+      console.log("Email:", email); // LOG 2
+      console.log("Password:", password ? '***' : ''); // LOG 3 
+      console.log("Calling signIn..."); // LOG 4
+      
+      const result = await signIn('credentials', { 
+        redirect: false, 
+        email: email, 
+        password: password 
+      });
+
+      console.log("signIn Result:", result); // LOG 5
+
+      if (result?.error) { 
+        console.error("signIn Error:", result.error); // LOG 6
+        setError(result.error); 
+        // setLoading(false); // Dihapus karena sudah ada di finally
+      } else { 
+        console.log("Login Success!"); // LOG 7
+        alert('Login berhasil!'); 
+        router.push('/'); 
+      }
+    } catch (err: any) { 
+      console.error("Catch Block Error:", err); // LOG 8
+      setError('Terjadi kesalahan koneksi: ' + err.message); 
+    } finally {
+      console.log("--- Handle Submit Finally ---"); // LOG 9
+      setLoading(false); 
+    }
   };
+  // ---------------------------------------------
 
   return (
-    // Form putih di tengah
-    <div className="max-w-md mx-auto mt-10 p-8 bg-white rounded-lg shadow-md border border-stone-200">
-      <h1 className="text-3xl font-lora font-medium text-stone-800 mb-6 text-center">Login</h1>
-      <form onSubmit={handleSubmit}>
-        {error && <p className="mb-4 text-red-500 text-sm">{error}</p>}
-        
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-stone-600 mb-1">Email</label>
-          <input
-            id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-            // Style Input
-            className="w-full bg-white border-stone-300 text-stone-800 rounded-md p-2 shadow-sm focus:ring-rose-500 focus:border-rose-500"
-            required
-          />
-        </div>
-        
-        <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium text-stone-600 mb-1">Password</label>
-          <input
-            id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-            // Style Input
-            className="w-full bg-white border-stone-300 text-stone-800 rounded-md p-2 shadow-sm focus:ring-rose-500 focus:border-rose-500"
-            required
-          />
-        </div>
-        
-        <button type="submit" disabled={loading} 
-          // Style Tombol
-          className="w-full py-2 px-4 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-md shadow-md transition-colors disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : 'Login'}
-        </button>
-      </form>
-      
-      <p className="mt-6 text-center text-sm text-stone-600">
-        Belum punya akun?{' '}
-        <Link href="/register" className="font-medium text-rose-500 hover:text-rose-400">
-          Daftar di sini
-        </Link>
-      </p>
+    <div className="flex justify-center items-center min-h-[calc(100vh-200px)]"> 
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-lora font-medium">Login</CardTitle>
+          <CardDescription>Masuk ke akun Cellebeads Anda</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Pastikan form memanggil handleSubmit */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            
+            <div className="space-y-1.5"> 
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@contoh.com" required
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password Anda" required
+              />
+            </div>
+            
+            {/* Pastikan button type="submit" */}
+            <Button type="submit" disabled={loading} className="w-full bg-rose-500 hover:bg-rose-600">
+              {loading ? 'Loading...' : 'Login'}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center text-sm">
+          <p className="text-stone-600">
+            Belum punya akun?{' '}
+            <Link href="/register" className="font-medium text-rose-500 hover:text-rose-400 underline">
+              Daftar di sini
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

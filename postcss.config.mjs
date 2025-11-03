@@ -1,6 +1,11 @@
+// File: postcss.config.mjs
+/** @type {import('postcss-load-config').Config} */
 const config = {
   plugins: {
-    "@tailwindcss/postcss": {},
+    // Gunakan nama paket eksplisit
+    '@tailwindcss/postcss': {}, 
+    autoprefixer: {},
+    // Tambahkan plugin lain jika perlu di masa depan
   },
 };
 
