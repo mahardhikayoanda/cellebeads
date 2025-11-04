@@ -1,0 +1,131 @@
+// File: prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb" // Ganti ini jika Anda ganti DB (misal: "postgresql")
+  url      = env("DATABASE_URL")
+}
+
+// Model untuk Next-Auth Adapter
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String   @id @map("_id")
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Model dari aplikasi Anda
+enum Role {
+  customer
+  admin
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String?
+  email     String?   @unique
+  password  String?   // Dihash menggunakan bcrypt
+  role      Role      @default(customer)
+  address   String?
+  phone     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relasi
+  accounts  Account[]
+  sessions  Session[]
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Product {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  price       Float
+  stock       Int
+  image       String   // URL dari Cloudinary
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi
+  reviews     Review[]
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  totalPrice Float
+  status    String   @default("pending") // "pending", "processed", "shipped", "delivered", "cancelled"
+  isPaid    Boolean  @default(false)
+  deliveredAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Detail Pengiriman
+  shippingName    String
+  shippingAddress String
+  shippingPhone   String
+  paymentMethod   String // "cash" atau "transfer"
+
+  // Relasi
+  items     OrderItem[]
+}
+
+// Model untuk item di dalam order
+model OrderItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String   @db.ObjectId
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+
+  name      String
+  quantity  Int
+  price     Float // Harga satuan saat order
+}
+
+model Review {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+}
