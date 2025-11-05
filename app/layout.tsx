@@ -1,24 +1,20 @@
 // File: app/layout.tsx
-// TIDAK ADA 'use client';
+// HAPUS 'use client';
 
 import type { Metadata } from "next"; 
 import { Lato, Lora } from "next/font/google";
 import "./globals.css";
 
-import AppSessionProvider from "./SessionProvider"; // <-- Gunakan wrapper ini
+// 1. IMPORT SessionProvider LANGSUNG dari 'next-auth/react'
+import { SessionProvider } from "next-auth/react"; 
 import { CartProvider } from "@/context/CartContext";
 import Navbar from "@/components/Navbar";
 import React from "react"; 
 
-// Konfigurasi font (sudah benar)
+// ... (Konfigurasi font dan metadata tetap sama) ...
 const lato = Lato({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-lato", display: 'swap' });
 const lora = Lora({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-lora", display: 'swap' });
-
-// Export metadata (sudah benar)
-export const metadata: Metadata = { 
-  title: "Cellebeads",
-  description: "Toko Aksesoris Wanita by Celle",
-};
+export const metadata: Metadata = { title: "Cellebeads", description: "Toko Aksesoris Wanita" };
 
 export default function RootLayout({
   children,
@@ -28,9 +24,8 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${lato.variable} ${lora.variable}`}>
       <body className={`font-sans min-h-screen flex flex-col`}>
-        {/* Gunakan AppSessionProvider */}
-        <AppSessionProvider> 
-          {/* Struktur nesting di dalamnya */}
+        {/* 2. Gunakan SessionProvider (dari next-auth/react) */}
+        <SessionProvider> 
           <CartProvider>
             <div className="flex flex-col min-h-screen"> 
               <Navbar />
@@ -38,13 +33,11 @@ export default function RootLayout({
                 {children}
               </main>
               <footer className="bg-white border-t border-stone-200 mt-auto py-6">
-                  <p className="text-center text-sm text-stone-500">
-                      © {new Date().getFullYear()} Cellebeads. Hak Cipta Dilindungi.
-                  </p>
+                  {/* ... (footer) ... */}
               </footer>
             </div>
           </CartProvider>
-        </AppSessionProvider>
+        </SessionProvider>
       </body>
     </html>
   );

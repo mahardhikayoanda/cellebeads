@@ -2,11 +2,7 @@
 import type { NextConfig } from "next";
 
 const config: NextConfig = {
-  // Ini dari perbaikan kita sebelumnya, JANGAN DIHAPUS
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
+  
   // --- TAMBAHKAN BLOK INI ---
   // Ini memberi tahu Next.js bahwa gambar dari Vercel Blob aman
   images: {

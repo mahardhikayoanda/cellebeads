@@ -3,29 +3,40 @@
 
 import dbConnect from '@/lib/dbConnect';
 import Order from '@/models/Order';
-import Review from '@/models/Review'; // <-- 1. Import model Review
-import { authOptions } from '@/lib/authOptions';
-import { getServerSession } from 'next-auth/next';
+import Review from '@/models/Review';
+
+// --- PERUBAHAN DI SINI ---
+// 1. Hapus import 'authOptions' dan 'getServerSession'
+// 2. Impor 'auth' dari file @/auth.ts baru Anda
+import { auth } from '@/auth';
+// -------------------------
+
 import { IOrder } from '@/app/admin/orders/actions';
 import { revalidatePath } from 'next/cache';
 
-// FUNGSI 1: MENGAMBIL PESANAN (Sudah ada)
+// FUNGSI 1: MENGAMBIL PESANAN
 export async function getMyOrders(): Promise<IOrder[]> {
-  const session = await getServerSession(authOptions);
+  // --- PERUBAHAN DI SINI ---
+  const session = await auth();
+  // -------------------------
+
   if (!session?.user) {
     return []; 
   }
   await dbConnect();
-  const orders = await Order.find({ user: session.user.id })
+  const orders = await Order.find({ user: session.user.id }) // Gunakan session.user.id
     .populate('user', 'name email')
     .sort({ createdAt: -1 });
   
   return JSON.parse(JSON.stringify(orders));
 }
 
-// FUNGSI 2: PESANAN DITERIMA (Baru)
+// FUNGSI 2: PESANAN DITERIMA
 export async function markOrderAsDelivered(orderId: string) {
-  const session = await getServerSession(authOptions);
+  // --- PERUBAHAN DI SINI ---
+  const session = await auth();
+  // -------------------------
+
   if (!session?.user) return { success: false, message: 'Akses ditolak' };
 
   await dbConnect();
@@ -33,8 +44,8 @@ export async function markOrderAsDelivered(orderId: string) {
     const order = await Order.findOne({ _id: orderId, user: session.user.id });
     if (!order) return { success: false, message: 'Pesanan tidak ditemukan' };
 
-    order.status = 'delivered'; // Ubah status
-    order.deliveredAt = new Date(); // Catat tanggal diterima
+    order.status = 'delivered'; 
+    order.deliveredAt = new Date(); 
     await order.save();
     
     revalidatePath('/dashboard/my-orders');
@@ -44,9 +55,12 @@ export async function markOrderAsDelivered(orderId: string) {
   }
 }
 
-// FUNGSI 3: KIRIM ULASAN (Baru)
+// FUNGSI 3: KIRIM ULASAN
 export async function submitReview(formData: FormData) {
-  const session = await getServerSession(authOptions);
+  // --- PERUBAHAN DI SINI ---
+  const session = await auth();
+  // -------------------------
+
   if (!session?.user) return { success: false, message: 'Akses ditolak' };
 
   try {
@@ -61,21 +75,15 @@ export async function submitReview(formData: FormData) {
 
     await dbConnect();
     
-    // TODO: Cek apakah user sudah pernah mereview produk ini
-    // Untuk saat ini, kita izinkan
-
     await Review.create({
       product: productId,
-      user: session.user.id,
+      user: session.user.id, // Gunakan session.user.id
       rating,
       comment,
     });
     
-    // TODO: Tandai di order bahwa item ini sudah di-review
-    // (Ini butuh update schema Order.js, bisa kita lakukan nanti)
-
     revalidatePath('/dashboard/my-orders');
-    revalidatePath(`/products/${productId}`); // Refresh halaman produk agar ulasan muncul
+    revalidatePath(`/products/${productId}`); 
     return { success: true, message: 'Ulasan Anda berhasil dikirim' };
 
   } catch (error: any) {

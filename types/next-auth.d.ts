@@ -1,23 +1,24 @@
-import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
-import { JWT, DefaultJWT } from "next-auth/jwt";
+// File: types/next-auth.d.ts
+import 'next-auth';
+import 'next-auth/jwt';
 
-// Definisikan tipe baru untuk User dan JWT
-declare module "next-auth" {
+// Tambahkan 'role' dan 'id' ke tipe User
+declare module 'next-auth' {
+  interface User {
+    role?: string;
+  }
   interface Session {
     user: {
       id: string;
-      role: string;
-    } & DefaultSession["user"]; // Gabung dengan tipe default
-  }
-
-  interface User extends DefaultUser {
-    role: string;
+      role?: string;
+    } & DefaultSession['user'];
   }
 }
 
-declare module "next-auth/jwt" {
-  interface JWT extends DefaultJWT {
+// Tambahkan 'role' dan 'id' ke tipe JWT
+declare module 'next-auth/jwt' {
+  interface JWT {
+    role?: string;
     id: string;
-    role: string;
   }
 }
