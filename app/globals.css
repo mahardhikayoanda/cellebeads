@@ -26,7 +26,7 @@
     --ring: 346.8 77.2% 49.8%; /* Pink Mawar */
     --radius: 0.5rem;
   }
- 
+
   .dark {
     /* Palet Warna Gelap (Opsional) */
     --background: 240 10% 3.9%; --foreground: 0 0% 98%;
@@ -43,7 +43,6 @@
 }
 
 /* 2. Impor dasar Tailwind SETELAH variabel */
-@tailwind base;
-@tailwind components;
+@import "tailwindcss/preflight";
 @tailwind utilities;
 
