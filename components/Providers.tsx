@@ -1,16 +1,19 @@
-// File: components/Providers.tsx (PASTIKAN FILE INI ADA)
-'use client'; // <-- WAJIB
+'use client'
 
-import { SessionProvider } from "next-auth/react";
-import { CartProvider } from "@/context/CartContext";
-import React from "react";
+import { SessionProvider } from 'next-auth/react'
+import { CartProvider } from '@/context/CartContext'
+import { ReactNode } from 'react'
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface ProvidersProps {
+  children: ReactNode
+}
+
+export function Providers({ children }: ProvidersProps) {
   return (
     <SessionProvider>
       <CartProvider>
         {children}
       </CartProvider>
     </SessionProvider>
-  );
+  )
 }

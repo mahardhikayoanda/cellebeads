@@ -1,29 +1,27 @@
-// File: auth.config.ts
+// File: auth.config.ts (PASTIKAN ISINYA SEPERTI INI)
+
 import type { NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import dbConnect from '@/lib/dbConnect';
+import dbConnect from '@/lib/dbConnect'; // <-- GANTI dari lib/mongodb menjadi lib/dbConnect
 import User from '@/models/User';
 
 export const authConfig = {
   pages: {
-    signIn: '/login', // Halaman login kustom
-    error: '/login', // Redirect ke login jika ada error
+    signIn: '/login', 
+    error: '/login', 
   },
   providers: [
     Credentials({
-      // Anda tidak perlu 'credentials' object di v5 jika form Anda kustom
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null; 
         }
         const { email, password } = credentials as { email: string; password: string };
 
-        await dbConnect();
+        await dbConnect(); // <-- GANTI dari connectDB() menjadi dbConnect()
         const user = await User.findOne({ email });
 
-        // Gunakan method matchPassword dari model User.js Anda
         if (user && (await user.matchPassword(password))) {
-          // Kembalikan data user yang akan disimpan di token
           return { 
               id: user._id.toString(), 
               name: user.name, 
@@ -33,23 +31,19 @@ export const authConfig = {
         }
         
         console.log("Invalid credentials");
-        return null; // Login gagal
+        return null; 
       },
     }),
   ],
   callbacks: {
-    // Callback 'jwt' dipanggil saat token dibuat/diupdate
     async jwt({ token, user }) {
       if (user) {
-        // Saat login, tambahkan properti dari 'user' (hasil authorize) ke token
         token.id = user.id;
         token.role = (user as any).role;
       }
       return token;
     },
-    // Callback 'session' dipanggil saat sesi diakses
     async session({ session, token }) {
-      // Tambahkan properti dari 'token' ke 'session.user'
       if (session.user && token.sub) {
          session.user.id = token.id as string;
          (session.user as any).role = token.role; 

@@ -1,11 +1,8 @@
-// File: app/layout.tsx (GANTI SEMUA ISINYA DENGAN INI)
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Lato, Lora } from "next/font/google";
 import "./globals.css";
-
-// 1. GANTI import provider DENGAN import Providers
-import { Providers } from "@/components/Providers"; 
-
+import { Providers } from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import React from "react";
 
@@ -25,8 +22,6 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${lato.variable} ${lora.variable}`}>
       <body className={`font-sans min-h-screen flex flex-col`}>
-        
-        {/* 2. Bungkus HANYA dengan <Providers> */}
         <Providers>
           <div className="flex flex-col min-h-screen">
             <Navbar />
@@ -34,13 +29,12 @@ export default function RootLayout({
               {children}
             </main>
             <footer className="bg-white border-t border-stone-200 mt-auto py-6">
-               <p className="text-center text-sm text-stone-500">
-                    © {new Date().getFullYear()} Cellebeads. Hak Cipta Dilindungi.
-                </p>
+              <p className="text-center text-sm text-stone-500">
+                © {new Date().getFullYear()} Cellebeads. Hak Cipta Dilindungi.
+              </p>
             </footer>
           </div>
         </Providers>
-        
       </body>
     </html>
   );

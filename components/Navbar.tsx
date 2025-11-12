@@ -1,75 +1,105 @@
-// File: components/Navbar.tsx
-'use client';
+// File: components/Navbar.tsx (Fixed)
+
+'use client'
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { ShoppingCart, User, LogOut } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { Button } from "@/components/ui/button";
-import { ShoppingBag } from 'lucide-react';
-import React from 'react';
 
 export default function Navbar() {
   const { data: session } = useSession();
-  const { cartItems } = useCart();
-  const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
+  const { cartItems, getTotalItems } = useCart();
+  
+  // Gunakan function getTotalItems() atau hitung manual
+  const totalItems = getTotalItems();
 
-  // akses role dengan aman (casting bila perlu)
+  // Akses role dengan aman
   const userRole = (session?.user as any)?.role;
 
   return (
-    <nav className="bg-white text-foreground shadow-sm border-b sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Left: Logo / Brand */}
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-lg font-semibold">
-            Cellebeads
+    <nav className="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="text-2xl font-lora font-semibold text-primary">
+          Cellebeads
+        </Link>
+
+        {/* Navigation Links */}
+        <div className="hidden md:flex items-center space-x-6">
+          <Link href="/products" className="text-foreground hover:text-primary transition-colors">
+            Produk
+          </Link>
+          <Link href="/about" className="text-foreground hover:text-primary transition-colors">
+            Tentang
+          </Link>
+          <Link href="/contact" className="text-foreground hover:text-primary transition-colors">
+            Kontak
           </Link>
         </div>
 
-        {/* Center / Links */}
-        <div className="flex items-center space-x-4 md:space-x-6">
-          <Link href="/products" className="text-sm hover:text-primary">Katalog</Link>
-
-          {/* Cart link — pastikan satu elemen anak */}
-          <Link href="/cart" className="relative hover:text-primary flex items-center text-sm">
-            <div className="flex items-center gap-2">
-              <ShoppingBag size={18} />
-              <span className="sr-only">Keranjang</span>
+        {/* Right side buttons */}
+        <div className="flex items-center space-x-4">
+          {/* Cart Button */}
+          <Link href="/cart">
+            <Button variant="ghost" size="icon" className="relative">
+              <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
-                <span className="ml-1 rounded-full bg-red-600 text-white text-xs px-2">
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {totalItems}
                 </span>
               )}
-            </div>
+            </Button>
           </Link>
 
-          {/* Auth / Admin Links */}
+          {/* User Menu */}
           {session ? (
-            <div className="flex items-center gap-3">
-              {userRole === 'admin' ? (
-                <div className="flex items-center gap-3">
-                  <Link href="/admin/products" className="text-sm hover:text-primary">Kelola Produk</Link>
-                  <Link href="/admin/orders" className="text-sm hover:text-primary">Kelola Pesanan</Link>
-                  <Link href="/admin/sales-history" className="text-sm hover:text-primary">Riwayat</Link>
-                </div>
-              ) : (
-                <Link href="/dashboard/my-orders" className="text-sm hover:text-primary">Pesanan Saya</Link>
+            <div className="flex items-center space-x-2">
+              {userRole === 'admin' && (
+                <Link href="/admin">
+                  <Button variant="outline" size="sm">
+                    Admin Panel
+                  </Button>
+                </Link>
               )}
-
-              <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
-                Logout
+              
+              <div className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span className="text-sm">{session.user?.name || session.user?.email}</span>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => signOut({ callbackUrl: '/' })}
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              {/* Bungkus Button dengan Link (hindari asChild) */}
-              <Link href="/login">
-                <Button size="sm">Login</Button>
-              </Link>
-
-              <Link href="/register" className="text-sm hover:text-primary">Register</Link>
-            </div>
+            <Link href="/login">
+              <Button variant="default" size="sm">
+                Masuk
+              </Button>
+            </Link>
           )}
+        </div>
+      </div>
+
+      {/* Mobile Navigation (opsional) */}
+      <div className="md:hidden border-t border-stone-200 py-2">
+        <div className="container mx-auto px-4 flex justify-around">
+          <Link href="/products" className="text-sm text-foreground hover:text-primary">
+            Produk
+          </Link>
+          <Link href="/about" className="text-sm text-foreground hover:text-primary">
+            Tentang
+          </Link>
+          <Link href="/contact" className="text-sm text-foreground hover:text-primary">
+            Kontak
+          </Link>
         </div>
       </div>
     </nav>

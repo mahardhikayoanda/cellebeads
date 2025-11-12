@@ -1,24 +1,25 @@
-// File: types/next-auth.d.ts
-import 'next-auth';
-import 'next-auth/jwt';
+import 'next-auth'
 
-// Tambahkan 'role' dan 'id' ke tipe User
 declare module 'next-auth' {
   interface User {
-    role?: string;
+    role?: string
+    id?: string
   }
+  
   interface Session {
     user: {
-      id: string;
-      role?: string;
-    } & DefaultSession['user'];
+      id: string
+      email: string
+      name?: string | null
+      role: string
+      image?: string | null
+    }
   }
 }
 
-// Tambahkan 'role' dan 'id' ke tipe JWT
 declare module 'next-auth/jwt' {
   interface JWT {
-    role?: string;
-    id: string;
+    role?: string
+    id?: string
   }
 }
