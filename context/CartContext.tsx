@@ -1,4 +1,4 @@
-// File: context/CartContext.tsx
+// File: context/CartContext.tsx (INI ADALAH VERSI YANG SUDAH DIPERBAIKI)
 
 'use client'
 
@@ -9,11 +9,11 @@ export interface ICartItem {
   name: string;
   price: number;
   image: string;
-  quantity: number;
+  quantity: number; // <-- Nama propertinya 'quantity'
 }
 
 interface CartContextType {
-  cartItems: ICartItem[];
+  cartItems: ICartItem[]; // <-- Nama yang diharapkan adalah 'cartItems'
   addToCart: (item: ICartItem) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -25,15 +25,15 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<ICartItem[]>([]);
+  // --- PERBAIKAN 1: Ganti nama state ---
+  const [cartItems, setCartItems] = useState<ICartItem[]>([]); 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load cart dari localStorage saat mount
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
       try {
-        setCart(JSON.parse(savedCart));
+        setCartItems(JSON.parse(savedCart));
       } catch (error) {
         console.error('Error loading cart:', error);
         localStorage.removeItem('cart');
@@ -42,15 +42,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setIsLoaded(true);
   }, []);
 
-  // Save cart ke localStorage setiap kali berubah
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem('cart', JSON.stringify(cartItems));
     }
-  }, [cart, isLoaded]);
+  }, [cartItems, isLoaded]);
 
   const addToCart = (item: ICartItem) => {
-    setCart(prevCart => {
+    setCartItems(prevCart => {
       const existingItem = prevCart.find(i => i._id === item._id);
       
       if (existingItem) {
@@ -60,13 +59,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             : i
         );
       }
-      
       return [...prevCart, item];
     });
   };
 
   const removeFromCart = (id: string) => {
-    setCart(prevCart => prevCart.filter(item => item._id !== id));
+    setCartItems(prevCart => prevCart.filter(item => item._id !== id));
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -74,8 +72,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       removeFromCart(id);
       return;
     }
-    
-    setCart(prevCart =>
+    setCartItems(prevCart =>
       prevCart.map(item =>
         item._id === id ? { ...item, quantity } : item
       )
@@ -83,21 +80,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearCart = () => {
-    setCart([]);
+    setCartItems([]);
   };
 
   const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
   const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
   return (
     <CartContext.Provider
       value={{
-        cart,
+        // --- PERBAIKAN 2: Pastikan nama key-nya 'cartItems' ---
+        cartItems,
         addToCart,
         removeFromCart,
         updateQuantity,
