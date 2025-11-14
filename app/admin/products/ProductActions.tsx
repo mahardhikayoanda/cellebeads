@@ -1,17 +1,49 @@
 // File: app/admin/products/ProductActions.tsx
 'use client'; 
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { deleteProduct, IProduct } from './actions'; 
 import { Button } from '@/components/ui/button'; 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; 
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog"; 
 import { Edit, Trash2 } from 'lucide-react'; 
 
-interface ProductActionsProps { product: IProduct; }
+interface ProductActionsProps { 
+  product: IProduct; 
+}
 
 export default function ProductActions({ product }: ProductActionsProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const handleDelete = async () => { /* ... (logika sama) ... */ };
+
+  // --- INI LOGIKA YANG HILANG SEBELUMNYA ---
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteProduct(product._id);
+      
+      if (result.success) {
+        alert("Produk berhasil dihapus!");
+        // Halaman akan otomatis di-refresh oleh revalidatePath di server action
+      } else {
+        alert("Gagal menghapus: " + result.message);
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan saat menghapus produk.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  // -----------------------------------------
 
   return (
     <div className="flex justify-center items-center space-x-2"> 
@@ -39,7 +71,12 @@ export default function ProductActions({ product }: ProductActionsProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-gray-600 hover:bg-gray-500 border-gray-500 text-gray-200">Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault(); // Mencegah dialog menutup otomatis sebelum proses selesai
+                handleDelete();
+              }} 
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 text-white" 
             >
               {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}

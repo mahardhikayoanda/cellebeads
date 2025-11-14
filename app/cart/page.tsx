@@ -1,4 +1,4 @@
-// File: app/cart/page.tsx (INI ADALAH VERSI YANG SUDAH DIPERBAIKI)
+// File: app/cart/page.tsx (GANTI ISINYA)
 'use client';
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
@@ -8,16 +8,26 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox"; // <-- 1. IMPORT CHECKBOX
 
 export default function CartPage() {
-  // --- PERBAIKAN 1: Ganti 'total' menjadi 'getTotalPrice' ---
-  const { cartItems, removeFromCart, updateQuantity, getTotalPrice, clearCart, getTotalItems } = useCart();
+  // 2. Ambil fungsi & state baru
+  const { 
+    cartItems, 
+    removeFromCart, 
+    updateQuantity, 
+    getTotalPrice, 
+    clearCart, 
+    toggleCartItemSelection, // <-- fungsi baru
+    selectedItems // <-- data baru
+  } = useCart();
+  
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
 
-  // --- PERBAIKAN 2: Panggil fungsi untuk mendapatkan nilainya ---
-  const total = getTotalPrice ? getTotalPrice() : 0; // Panggil fungsi
+  // 3. Panggil fungsi total (sekarang ini HANYA menghitung yang terpilih)
+  const total = getTotalPrice ? getTotalPrice() : 0; 
 
   if (!isMounted) { 
     return <p style={{ textAlign: 'center', padding: '50px' }}>Memuat keranjang...</p>;
@@ -39,14 +49,20 @@ export default function CartPage() {
       ) : (
         <div>
           <div className="space-y-4"> 
+            {/* 4. Tampilkan barang dengan checkbox */}
             {cartItems.map((item) => (
               <div key={item._id} className="flex items-center gap-4 border-b border-stone-200 pb-4">
+                <Checkbox
+                  id={`select-${item._id}`}
+                  checked={item.selected}
+                  onCheckedChange={() => toggleCartItemSelection(item._id)}
+                  className="mt-1" // Beri sedikit margin
+                />
                 <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md object-cover border border-stone-200"/>
                 <div className="flex-grow">
                   <Link href={`/products/${item._id}`} className="font-medium hover:text-rose-500">{item.name}</Link>
                   <p className="text-sm text-stone-600">Rp {item.price.toLocaleString('id-ID')}</p>
                 </div>
-                {/* --- PERBAIKAN 3: Ganti 'item.qty' menjadi 'item.quantity' --- */}
                 <Input type="number" value={item.quantity} min="1" 
                        onChange={(e) => updateQuantity(item._id, Number(e.target.value))}
                        className="w-16 text-center h-9" 
@@ -57,15 +73,23 @@ export default function CartPage() {
               </div>
             ))}
           </div>
-          {/* Ringkasan & Tombol Aksi */}
+          {/* 5. Perbarui Ringkasan */}
           <div className="mt-8 pt-6 border-t border-stone-300">
             <div className="flex justify-between items-center text-xl font-semibold mb-6">
-              <span>Total Harga:</span>
+              <span>Total Harga (Hanya barang terpilih):</span>
               <span>Rp {total.toLocaleString('id-ID')}</span> 
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={clearCart}>Kosongkan Keranjang</Button>
-              <Button size="lg" onClick={handleCheckout} className="bg-emerald-500 hover:bg-emerald-600">Lanjut ke Checkout</Button>
+              <Button 
+                size="lg" 
+                onClick={handleCheckout} 
+                className="bg-emerald-500 hover:bg-emerald-600"
+                // 6. Disable tombol jika tidak ada item terpilih
+                disabled={selectedItems.length === 0} 
+              >
+                Lanjut ke Checkout ({selectedItems.length} barang)
+              </Button>
             </div>
           </div>
         </div>

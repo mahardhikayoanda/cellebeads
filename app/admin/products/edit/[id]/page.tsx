@@ -1,16 +1,19 @@
 // File: app/admin/products/edit/[id]/page.tsx
-
 import { getProductById } from '@/app/admin/products/actions';
 import EditProductForm from './EditProductForm';
 
 interface EditPageProps {
-  params: {
-    id: string; // 'id' ini berasal dari nama folder [id]
-  }
+  // 1. Ubah tipe params menjadi Promise
+  params: Promise<{
+    id: string; 
+  }>
 }
 
 export default async function EditProductPage({ params }: EditPageProps) {
-  const { id } = params;
+  // 2. Tambahkan 'await' sebelum mengakses params
+  const { id } = await params;
+  
+  // 3. Gunakan id yang sudah di-resolve
   const product = await getProductById(id);
 
   if (!product) {

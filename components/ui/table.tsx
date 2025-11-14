@@ -1,18 +1,19 @@
-import * as React from "react"
+// File: components/ui/table.tsx (VERSI FIXED)
+'use client'; // Pastikan ada use client
 
+import * as React from "react"
 import { cn } from "@/lib/utils"
 
+// PERBAIKAN: Hapus <div> wrapper, langsung kembalikan <table>
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
+  <table
+    ref={ref}
+    className={cn("w-full caption-bottom text-sm", className)}
+    {...props}
+  />
 ))
 Table.displayName = "Table"
 
