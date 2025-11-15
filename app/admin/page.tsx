@@ -1,8 +1,8 @@
-// File: app/admin/page.tsx (BUAT FILE BARU INI)
+// File: app/admin/page.tsx
 import { redirect } from 'next/navigation';
 
 export default function AdminPage() {
   // Langsung arahkan ke halaman "Kelola Produk"
-  // Ini akan menjadi halaman default saat admin login
+  // Ini adalah halaman default saat admin login
   redirect('/admin/products');
 }

@@ -7,38 +7,57 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card"; // Import Card
+import { Card, CardContent } from "@/components/ui/card"; 
 
 interface Props { order: IOrder; }
 
 export default function OrderActionsClient({ order }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState<string | null>(null);
-  const handleDelivered = async () => {/* ... (logika sama) ... */};
-  const handleReviewSubmit = async (e: React.FormEvent<HTMLFormElement>) => {/* ... (logika sama) ... */};
 
-  // Tombol Pesanan Diterima (Hijau)
+  const handleDelivered = async () => {
+    setIsLoading(true);
+    const result = await markOrderAsDelivered(order._id);
+    if (!result.success) alert(result.message);
+    setIsLoading(false);
+  };
+  
+  const handleReviewSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const result = await submitReview(formData);
+    if (result.success) {
+      alert("Ulasan terkirim!");
+      setShowReviewForm(null);
+    } else {
+      alert("Gagal: " + result.message);
+    }
+    setIsLoading(false);
+  };
+
+  // Tombol Pesanan Diterima
   if (order.status === 'processed') {
     return (
       <Button onClick={handleDelivered} disabled={isLoading} size="sm" 
-              className="bg-emerald-500 hover:bg-emerald-600"> {/* Warna hijau */}
+              className="bg-emerald-600 hover:bg-emerald-700">
         {isLoading ? '...' : 'Pesanan Diterima'} 
       </Button>
     );
   }
 
-  // Tombol & Form Ulasan (Biru/Default)
+  // Tombol & Form Ulasan
   if (order.status === 'delivered') {
     const productToReview = order.items[0]; 
     return (
       <div>
         {showReviewForm === productToReview.name ? (
-          // Bungkus form dengan Card kecil
-          <Card className="mt-2 text-left"> 
+          // Hapus class tema gelap dari Card
+          <Card className="mt-2 text-left shadow-lg border-stone-200"> 
             <CardContent className="p-4 space-y-2">
-              <h4 className="text-sm font-medium mb-2 text-stone-700">Ulasan untuk {productToReview.name}:</h4>
+              <h4 className="text-sm font-medium mb-2 text-foreground">Ulasan untuk {productToReview.name}:</h4>
               <form onSubmit={handleReviewSubmit} id={`review-form-${order._id}`} className="space-y-2">
-                <input type="hidden" name="productId" value={productToReview.product} />
+                <input type="hidden" name="productId" value={(productToReview as any).product} />
                 <input type="hidden" name="orderId" value={order._id} />
                 <div className="flex items-center gap-2">
                   <Label htmlFor={`rating-${order._id}`} className="text-sm">Rating (1-5):</Label>
@@ -62,6 +81,5 @@ export default function OrderActionsClient({ order }: Props) {
       </div>
     );
   }
-
   return <span>-</span>;
 }
