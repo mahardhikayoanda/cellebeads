@@ -1,27 +1,28 @@
+// File: app/page.tsx
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getProducts } from '@/app/admin/products/actions'; // <-- 1. Import getProducts
+import ProductGrid from '@/app/products/ProductGrid'; // <-- 2. Import ProductGrid
+import HeroSection from './HeroSection'; // <-- 3. Import HeroSection
 
 export default async function HomePage() {
+  // Ambil 4 produk terbaru
+  const latestProducts = await getProducts();
+  const productsToShow = latestProducts.slice(0, 4);
+
   return (
-    <div className="space-y-16">
+    <div className="space-y-20">
+      
       {/* Hero Section */}
       <Card className="overflow-hidden shadow-lg border-stone-200">
         <CardContent className="p-0">
           <div className="relative bg-gradient-to-br from-rose-50 via-white to-stone-50 py-20 px-8 md:flex md:items-center min-h-[450px]">
-            <div className="md:w-1/2 relative z-10 text-center md:text-left">
-              <h1 className="text-4xl lg:text-5xl font-lora font-semibold text-foreground mb-4 leading-tight">
-                Temukan Kilau Sempurna Anda
-              </h1>
-              <p className="text-lg text-muted-foreground mb-8">
-                Koleksi aksesoris wanita pilihan untuk setiap momen istimewa.
-              </p>
-              {/* FIX: Bungkus Link dengan single element */}
-              <Button asChild size="lg">
-                <Link href="/products">Lihat Koleksi</Link>
-              </Button>
-            </div>
+            
+            {/* 4. Ganti teks statis dengan Komponen Animasi */}
+            <HeroSection />
+
             <div className="hidden md:block md:w-1/2 mt-8 md:mt-0 relative h-64 md:h-96">
               <Image
                 src="/placeholder-banner.jpg"
@@ -41,14 +42,15 @@ export default async function HomePage() {
         <h2 className="text-3xl font-lora font-medium text-foreground mb-8 text-center">
           Produk Terbaru
         </h2>
-        <p className="text-center mt-4 text-muted-foreground">
-          (Tampilkan beberapa ProductCard di sini)
-        </p>
-        <div className="text-center mt-8">
-          {/* FIX: Bungkus Link dengan single element */}
+        
+        {/* 5. Ganti placeholder dengan ProductGrid asli */}
+        <ProductGrid products={productsToShow} />
+
+        <div className="text-center mt-10">
           <Button
             asChild
             variant="outline"
+            size="lg" // <-- Buat tombol lebih besar
             className="border-primary text-primary hover:bg-primary/5 hover:text-primary"
           >
             <Link href="/products">Lihat Semua Produk →</Link>

@@ -1,56 +1,74 @@
 // File: app/admin/layout.tsx
+'use client'; // <-- Ubah jadi Client Component
+
 import React from 'react';
 import Link from 'next/link';
-// Anda mungkin ingin menambahkan ikon nanti
-// import { Box, ShoppingBag, BarChart } from 'react-feather'; 
+import { usePathname } from 'next/navigation'; // <-- Import hook
+import { motion } from 'framer-motion'; // <-- Import motion
+import { cn } from '@/lib/utils'; // <-- Import 'cn' untuk class kondisional
+import { Box, ShoppingBag, BarChart, Home } from 'lucide-react'; // <-- Tambahkan Ikon
 
-export default function AdminLayout({
-  children, // children di sini adalah page.tsx di dalam folder /admin/*
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname(); // Hook untuk mendapatkan URL saat ini
+
+  // Daftar link navigasi
+  const navLinks = [
+    { href: '/admin/products', label: 'Kelola Produk', icon: Box },
+    { href: '/admin/orders', label: 'Kelola Pesanan', icon: ShoppingBag },
+    { href: '/admin/sales-history', label: 'Riwayat Penjualan', icon: BarChart },
+  ];
+
   return (
-    // Kita buat container flex utama
     <div className="flex min-h-screen"> 
-      {/* Sidebar Navigasi Admin */}
-      <aside className="w-64 bg-gray-800 text-gray-300 p-6 border-r border-gray-700 flex flex-col">
-        <h2 className="text-xl font-semibold text-white mb-8">Admin Dashboard</h2>
+      
+      {/* Sidebar (Tema Terang) */}
+      <aside className="w-64 bg-stone-100 text-stone-800 p-6 border-r border-stone-200 flex flex-col">
+        <h2 className="text-2xl font-lora font-semibold text-primary mb-8">
+          Admin Panel
+        </h2>
         <nav className="grow">
-          <ul>
-            <li className="mb-4">
-              <Link href="/admin/products" className="flex items-center p-2 rounded hover:bg-gray-700 hover:text-white transition-colors">
-                {/* <Box size={18} className="mr-3" /> */}
-                Kelola Produk
-              </Link>
-            </li>
-            <li className="mb-4">
-              <Link href="/admin/orders" className="flex items-center p-2 rounded hover:bg-gray-700 hover:text-white transition-colors">
-                {/* <ShoppingBag size={18} className="mr-3" /> */}
-                Kelola Pesanan
-              </Link>
-            </li>
-            <li className="mb-4">
-              <Link href="/admin/sales-history" className="flex items-center p-2 rounded hover:bg-gray-700 hover:text-white transition-colors">
-                {/* <BarChart size={18} className="mr-3" /> */}
-                Riwayat Penjualan
-              </Link>
-            </li>
-            {/* Tambahkan link admin lainnya jika perlu */}
+          <ul className="space-y-2">
+            {navLinks.map((link) => {
+              // Cek apakah link ini aktif (pathname SAMA DENGAN href)
+              const isActive = pathname === link.href;
+              return (
+                <li key={link.href}>
+                  <Link 
+                    href={link.href} 
+                    className={cn(
+                      "flex items-center p-3 rounded-lg font-medium transition-colors",
+                      isActive 
+                        ? "bg-primary text-primary-foreground" // Warna Pink jika Aktif
+                        : "text-stone-700 hover:bg-stone-200" // Warna biasa
+                    )}
+                  >
+                    <link.icon size={18} className="mr-3" />
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
-        {/* Link kembali ke Halaman Utama (Pelanggan) */}
+        {/* Link kembali ke Toko */}
         <div className="mt-auto">
-             <Link href="/" className="text-sm text-gray-500 hover:text-gray-300">
-                &larr; Kembali ke Toko
+             <Link href="/" className="flex items-center text-sm text-stone-500 hover:text-primary transition-colors">
+                <Home size={16} className="mr-2" />
+                Kembali ke Toko
              </Link>
         </div>
       </aside>
 
-      {/* Area Konten Utama */}
-      {/* Kita beri background gelap juga untuk area konten */}
-      <main className="flex-1 p-8 bg-gray-900 text-gray-200 overflow-y-auto">
-        {children} {/* Ini adalah tempat page.tsx admin akan dirender */}
-      </main>
+      {/* Area Konten Utama (Dengan Animasi Fade-in) */}
+      <motion.main 
+        key={pathname} // <-- Kunci animasi agar berjalan saat pindah halaman
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex-1 p-8 bg-white text-foreground overflow-y-auto"
+      >
+        {children}
+      </motion.main>
     </div>
   );
 }

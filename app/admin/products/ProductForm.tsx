@@ -1,6 +1,5 @@
 // File: app/admin/products/ProductForm.tsx
 'use client'; 
-
 import { useState, useRef } from 'react';
 import { createProduct } from './actions'; 
 import { Button } from '@/components/ui/button';
@@ -13,21 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function ProductForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const [category, setCategory] = useState("Gelang"); // State untuk kategori
+  const [category, setCategory] = useState("Gelang"); 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const formData = new FormData(e.currentTarget);
-      
-      // --- PERBAIKAN PENTING DI SINI ---
-      // Paksa set nilai 'category' dari state React ke dalam FormData
-      // Ini menjamin kategori terkirim meskipun input hidden Select tidak terbaca
       formData.set('category', category); 
-      // ---------------------------------
-
       const result = await createProduct(formData);
 
       if (result.success) {
@@ -45,26 +37,27 @@ export default function ProductForm() {
   };
 
   return (
-    <Card className="bg-gray-800 border-gray-700 text-gray-300">
+    // Menggunakan Card tema terang (default)
+    <Card>
       <CardHeader>
-        <CardTitle className="text-white">Tambah Produk Baru</CardTitle>
+        <CardTitle>Tambah Produk Baru</CardTitle>
       </CardHeader>
       <CardContent>
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           
           <div className="space-y-1.5"> 
-            <Label htmlFor="name" className="text-gray-400">Nama Produk</Label>
-            <Input id="name" name="name" placeholder="Nama Produk" required className="bg-gray-700 border-gray-600 text-white" />
+            <Label htmlFor="name">Nama Produk</Label>
+            <Input id="name" name="name" placeholder="Nama Produk" required />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="category" className="text-gray-400">Kategori</Label>
+            <Label htmlFor="category">Kategori</Label>
             <Select 
               value={category} 
               onValueChange={setCategory} 
-              name="category" // name tetap ada sebagai cadangan
+              name="category" 
             >
-              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+              <SelectTrigger>
                 <SelectValue placeholder="Pilih Kategori" />
               </SelectTrigger>
               <SelectContent>
@@ -77,31 +70,37 @@ export default function ProductForm() {
           </div>
           
           <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-gray-400">Deskripsi</Label>
-            <Textarea id="description" name="description" placeholder="Deskripsi" required className="bg-gray-700 border-gray-600 text-white min-h-[80px]" />
+            <Label htmlFor="description">Deskripsi</Label>
+            {/* PERBAIKAN DI SINI: 
+              'min-h-[80px]' dipindahkan ke dalam 'className'
+            */}
+            <Textarea 
+              id="description" 
+              name="description" 
+              placeholder="Deskripsi" 
+              required 
+              className="min-h-[80px]" 
+            />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="price" className="text-gray-400">Harga</Label>
-              <Input id="price" name="price" type="number" required className="bg-gray-700 border-gray-600 text-white" />
+              <Label htmlFor="price">Harga</Label>
+              <Input id="price" name="price" type="number" required />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="stock" className="text-gray-400">Stok</Label>
-              <Input id="stock" name="stock" type="number" required className="bg-gray-700 border-gray-600 text-white" />
+              <Label htmlFor="stock">Stok</Label>
+              <Input id="stock" name="stock" type="number" required />
             </div>
           </div>
           
           <div className="space-y-1.5">
-            <Label htmlFor="images" className="text-gray-400">Gambar Produk</Label>
-            <Input 
-              id="images" name="images" type="file" accept="image/*" multiple required 
-              className="bg-gray-700 border-gray-600 text-gray-400 file:bg-gray-600 file:text-gray-200 file:border-0" 
-            />
-            <p className="text-xs text-gray-500">Tekan Ctrl/Cmd untuk memilih banyak foto.</p>
+            <Label htmlFor="images">Gambar Produk</Label>
+            <Input id="images" name="images" type="file" accept="image/*" multiple required />
+            <p className="text-xs text-muted-foreground">Tekan Ctrl/Cmd untuk memilih banyak foto.</p>
           </div>
 
-          <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? 'Mengupload...' : 'Tambah Produk'} 
           </Button>
         </form>
