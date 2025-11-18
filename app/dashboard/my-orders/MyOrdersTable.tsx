@@ -1,8 +1,9 @@
-// File: app/dashboard/my-orders/MyOrdersTable.tsx (BUAT FILE BARU INI)
+// File: app/dashboard/my-orders/MyOrdersTable.tsx
 'use client';
 
 import { motion } from 'framer-motion';
-import { IOrder } from '@/app/admin/orders/actions'; 
+// 1. Import tipe data baru dari actions.ts
+import { IOrderWithReview } from './actions'; 
 import OrderActionsClient from './OrderActionsClient'; 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,8 @@ const itemVariant = {
   visible: { opacity: 1, y: 0 }
 };
 
-export default function MyOrdersTable({ orders }: { orders: IOrder[] }) {
+// 2. Ubah tipe props menjadi IOrderWithReview
+export default function MyOrdersTable({ orders }: { orders: IOrderWithReview[] }) {
   return (
     <Table>
       <TableHeader>
@@ -35,16 +37,17 @@ export default function MyOrdersTable({ orders }: { orders: IOrder[] }) {
             <TableCell className="text-right">Rp {order.totalPrice.toLocaleString('id-ID')}</TableCell>
             <TableCell className="text-center">
                <Badge variant={
-                   order.status === 'pending' ? 'destructive' : // Merah untuk 'pending'
-                   order.status === 'processed' ? 'secondary' : // Abu-abu
-                   order.status === 'delivered' ? 'default' : // Pink (Primary)
+                   order.status === 'pending' ? 'destructive' :
+                   order.status === 'processed' ? 'secondary' :
+                   order.status === 'delivered' ? 'default' :
                    'outline'
                }>
                    {order.status}
                </Badge>
             </TableCell>
             <TableCell className="text-center">
-              <OrderActionsClient order={order} />
+              {/* Kirim 'order' yang sekarang berisi 'isReviewed' */}
+              <OrderActionsClient order={order} /> 
             </TableCell>
           </motion.tr>
         ))}

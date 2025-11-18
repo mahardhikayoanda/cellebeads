@@ -1,4 +1,5 @@
-import { Schema, model, models } from 'mongoose';
+// File: models/Order.js
+import mongoose, { Schema, model } from 'mongoose'; // <-- PERBAIKAN IMPORT
 
 const OrderSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -22,8 +23,12 @@ const OrderSchema = new Schema({
     enum: ['pending', 'processed', 'shipped', 'delivered', 'cancelled'],
     default: 'pending',
   },
-  isPaid: { type: Boolean, default: false }, // Admin bisa set ini manual
+  isPaid: { type: Boolean, default: false }, 
   deliveredAt: { type: Date },
 }, { timestamps: true });
 
-export default models.Order || model('Order', OrderSchema);
+if (process.env.NODE_ENV === 'development') {
+  if (mongoose.models.Order) delete mongoose.models.Order; // Gunakan mongoose.models
+}
+
+export default mongoose.models.Order || model('Order', OrderSchema); // Gunakan mongoose.models

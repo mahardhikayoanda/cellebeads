@@ -1,34 +1,47 @@
-// File: app/admin/products/edit/[id]/page.tsx
+// File: app/products/[id]/page.tsx
 import { getProductById } from '@/app/admin/products/actions';
-import EditProductForm from './EditProductForm';
+import { notFound } from 'next/navigation';
+import ProductDetailClientWrapper from './ProductDetailClientWrapper';
+import ReviewList from '@/components/ReviewList'; // <-- 1. Import komponen baru
+import dbConnect from '@/lib/dbConnect';
+import Review from '@/models/Review'; // <-- 2. Import model Review
 
-interface EditPageProps {
-  // 1. Ubah tipe params menjadi Promise
-  params: Promise<{
-    id: string; 
-  }>
+interface ProductPageProps {
+  params: Promise<{ id: string }>; 
 }
 
-export default async function EditProductPage({ params }: EditPageProps) {
-  // 2. Tambahkan 'await' sebelum mengakses params
-  const { id } = await params;
-  
-  // 3. Gunakan id yang sudah di-resolve
-  const product = await getProductById(id);
+// 3. Fungsi helper untuk mengambil ulasan produk ini
+async function getProductReviews(productId: string) {
+  await dbConnect();
+  const reviews = await Review.find({ product: productId })
+    .populate('user', 'name')
+    .sort({ createdAt: -1 });
+  return JSON.parse(JSON.stringify(reviews));
+}
+
+export default async function ProductDetailPage({ params }: ProductPageProps) {
+  const resolvedParams = await params; 
+  const product = await getProductById(resolvedParams.id); 
 
   if (!product) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <h1>Produk Tidak Ditemukan</h1>
-        <p>Produk dengan ID {id} tidak dapat ditemukan.</p>
-      </div>
-    );
+    notFound();
   }
 
+  // 4. Ambil ulasan untuk produk ini
+  const reviews = await getProductReviews(resolvedParams.id);
+
   return (
-    <div style={{ maxWidth: '800px', margin: '20px auto', padding: '20px', border: '1px solid #555' }}>
-      <h1>Edit Produk: {product.name}</h1>
-      <EditProductForm product={product} />
+    // 5. Tambahkan 'space-y-12' untuk memberi jarak
+    <div className="container mx-auto max-w-4xl p-4 space-y-12 pb-20">
+      
+      {/* Bagian Atas: Detail Produk */}
+      <ProductDetailClientWrapper product={product} />
+
+      {/* Bagian Bawah: Daftar Ulasan */}
+      <section className="border-t border-stone-200 pt-10">
+         <ReviewList reviews={reviews} />
+      </section>
+      
     </div>
   );
 }

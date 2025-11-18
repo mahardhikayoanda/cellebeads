@@ -1,42 +1,45 @@
-// File: app/dashboard/my-orders/actions.ts
 'use server';
 
 import dbConnect from '@/lib/dbConnect';
 import Order from '@/models/Order';
 import Review from '@/models/Review';
-
-// --- PERUBAHAN DI SINI ---
-// 1. Hapus import 'authOptions' dan 'getServerSession'
-// 2. Impor 'auth' dari file @/auth.ts baru Anda
 import { auth } from '@/auth';
-// -------------------------
-
-import { IOrder } from '@/app/admin/orders/actions';
+import { IOrder } from '@/app/admin/orders/actions'; // Kita gunakan IOrder yang sudah diperbaiki
 import { revalidatePath } from 'next/cache';
+import { put } from '@vercel/blob';
 
-// FUNGSI 1: MENGAMBIL PESANAN
-export async function getMyOrders(): Promise<IOrder[]> {
-  // --- PERUBAHAN DI SINI ---
+// Tipe data baru yang dikirim ke client
+export interface IOrderWithReview extends IOrder {
+  isReviewed: boolean;
+}
+
+// 1. GET ORDERS (Diperbarui untuk cek status review)
+export async function getMyOrders(): Promise<IOrderWithReview[]> {
   const session = await auth();
-  // -------------------------
-
-  if (!session?.user) {
-    return []; 
-  }
+  if (!session?.user) return []; 
+  
   await dbConnect();
-  const orders = await Order.find({ user: session.user.id }) // Gunakan session.user.id
+  const orders = await Order.find({ user: session.user.id })
     .populate('user', 'name email')
     .sort({ createdAt: -1 });
   
-  return JSON.parse(JSON.stringify(orders));
+  // Cek apakah setiap order sudah direview
+  const ordersWithReviewStatus = await Promise.all(orders.map(async (order) => {
+    // Cek di koleksi Review apakah ada review yang terkait 'order' ini
+    const reviewExists = await Review.exists({ order: order._id });
+    
+    return {
+      ...(JSON.parse(JSON.stringify(order)) as IOrder),
+      isReviewed: !!reviewExists // True jika reviewExists tidak null
+    };
+  }));
+  
+  return ordersWithReviewStatus;
 }
 
-// FUNGSI 2: PESANAN DITERIMA
+// 2. MARK DELIVERED (Tetap sama)
 export async function markOrderAsDelivered(orderId: string) {
-  // --- PERUBAHAN DI SINI ---
   const session = await auth();
-  // -------------------------
-
   if (!session?.user) return { success: false, message: 'Akses ditolak' };
 
   await dbConnect();
@@ -49,41 +52,62 @@ export async function markOrderAsDelivered(orderId: string) {
     await order.save();
     
     revalidatePath('/dashboard/my-orders');
-    return { success: true, message: 'Pesanan ditandai sebagai telah diterima' };
+    return { success: true, message: 'Pesanan telah diterima' };
   } catch (error: any) {
     return { success: false, message: error.message };
   }
 }
 
-// FUNGSI 3: KIRIM ULASAN
+// 3. SUBMIT REVIEW (Diperbarui untuk simpan OrderID & handle Foto)
 export async function submitReview(formData: FormData) {
-  // --- PERUBAHAN DI SINI ---
   const session = await auth();
-  // -------------------------
-
   if (!session?.user) return { success: false, message: 'Akses ditolak' };
 
   try {
     const productId = formData.get('productId') as string;
-    const orderId = formData.get('orderId') as string;
+    const orderId = formData.get('orderId') as string; // Ambil orderId dari form
     const rating = Number(formData.get('rating'));
     const comment = formData.get('comment') as string;
+    const imageFile = formData.get('image') as File;
 
     if (!productId || !orderId || !rating || !comment) {
-      return { success: false, message: 'Semua data wajib diisi' };
+      return { success: false, message: 'Rating dan Komentar wajib diisi' };
     }
 
     await dbConnect();
+
+    // Cek duplikasi review untuk order ini
+    const existingReview = await Review.findOne({ order: orderId });
+    if (existingReview) {
+        return { success: false, message: 'Anda sudah mengulas pesanan ini.' };
+    }
     
+    let imageUrl: string | undefined = undefined;
+
+    // Upload foto jika ada
+    if (imageFile && imageFile.size > 0) {
+      const blob = await put(
+        `reviews/${session.user.id}/${imageFile.name}`, 
+        imageFile,
+        { access: 'public', addRandomSuffix: true }
+      );
+      imageUrl = blob.url;
+    }
+
+    // Buat ulasan baru
     await Review.create({
       product: productId,
-      user: session.user.id, // Gunakan session.user.id
+      user: session.user.id,
+      order: orderId, // <-- SIMPAN ID ORDER
       rating,
       comment,
+      image: imageUrl,
     });
     
     revalidatePath('/dashboard/my-orders');
     revalidatePath(`/products/${productId}`); 
+    revalidatePath('/admin/reviews');
+    
     return { success: true, message: 'Ulasan Anda berhasil dikirim' };
 
   } catch (error: any) {
