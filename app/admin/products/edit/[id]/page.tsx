@@ -1,47 +1,35 @@
-// File: app/products/[id]/page.tsx
+// File: app/admin/products/edit/[id]/page.tsx
 import { getProductById } from '@/app/admin/products/actions';
-import { notFound } from 'next/navigation';
-import ProductDetailClientWrapper from './ProductDetailClientWrapper';
-import ReviewList from '@/components/ReviewList'; // <-- 1. Import komponen baru
-import dbConnect from '@/lib/dbConnect';
-import Review from '@/models/Review'; // <-- 2. Import model Review
+import EditProductForm from './EditProductForm';
 
-interface ProductPageProps {
-  params: Promise<{ id: string }>; 
+interface EditPageProps {
+  params: Promise<{
+    id: string; 
+  }>
 }
 
-// 3. Fungsi helper untuk mengambil ulasan produk ini
-async function getProductReviews(productId: string) {
-  await dbConnect();
-  const reviews = await Review.find({ product: productId })
-    .populate('user', 'name')
-    .sort({ createdAt: -1 });
-  return JSON.parse(JSON.stringify(reviews));
-}
-
-export default async function ProductDetailPage({ params }: ProductPageProps) {
-  const resolvedParams = await params; 
-  const product = await getProductById(resolvedParams.id); 
+export default async function EditProductPage({ params }: EditPageProps) {
+  // 1. Resolve params (Next.js 16)
+  const { id } = await params;
+  
+  // 2. Ambil data produk
+  const product = await getProductById(id);
 
   if (!product) {
-    notFound();
+    return (
+      <div className="p-8 text-center">
+        <h1 className="text-xl font-bold text-red-500">Produk Tidak Ditemukan</h1>
+        <p className="text-stone-500">Produk dengan ID {id} tidak dapat ditemukan.</p>
+      </div>
+    );
   }
 
-  // 4. Ambil ulasan untuk produk ini
-  const reviews = await getProductReviews(resolvedParams.id);
-
   return (
-    // 5. Tambahkan 'space-y-12' untuk memberi jarak
-    <div className="container mx-auto max-w-4xl p-4 space-y-12 pb-20">
+    <div className="max-w-3xl mx-auto space-y-6">
+      <h1 className="text-3xl font-lora font-semibold text-slate-800">Edit Produk</h1>
       
-      {/* Bagian Atas: Detail Produk */}
-      <ProductDetailClientWrapper product={product} />
-
-      {/* Bagian Bawah: Daftar Ulasan */}
-      <section className="border-t border-stone-200 pt-10">
-         <ReviewList reviews={reviews} />
-      </section>
-      
+      {/* 3. Render Form Edit */}
+      <EditProductForm product={product} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // File: models/Product.js
-import mongoose, { Schema, model } from 'mongoose'; // <-- PERBAIKAN IMPORT
+import mongoose, { Schema, model } from 'mongoose';
 
 const ProductSchema = new Schema({
   name: { type: String, required: true },
@@ -7,15 +7,19 @@ const ProductSchema = new Schema({
   price: { type: Number, required: true },
   stock: { type: Number, required: true, default: 0 },
   images: { type: [String], required: true }, 
+  
+  // --- PERUBAHAN DI SINI: Tambahkan kategori baru ke enum ---
   category: { 
     type: String, 
     required: true, 
-    enum: ['Gelang', 'Kalung', 'Cincin', 'Keychain'] 
+    enum: ['Gelang', 'Kalung', 'Cincin', 'Keychain', 'Strap Handphone', 'Jam Manik'] 
   },
+  // ----------------------------------------------------------
+  
 }, { timestamps: true });
 
 if (process.env.NODE_ENV === 'development') {
-  if (mongoose.models.Product) delete mongoose.models.Product; // Gunakan mongoose.models
+  if (mongoose.models.Product) delete mongoose.models.Product;
 }
 
-export default mongoose.models.Product || model('Product', ProductSchema); // Gunakan mongoose.models
+export default mongoose.models.Product || model('Product', ProductSchema);

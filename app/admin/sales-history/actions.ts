@@ -12,7 +12,7 @@ export interface IOrderItem {
   customerName: string;
 }
 
-// Terima parameter filter (default: 'all')
+// Fungsi menerima parameter filter (default: 'all')
 export async function getCompletedOrdersWithItems(filter: string = 'all'): Promise<IOrderItem[]> {
   await dbConnect();
   try {
@@ -34,14 +34,14 @@ export async function getCompletedOrdersWithItems(filter: string = 'all'): Promi
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       dateQuery = { $gte: startOfMonth };
     }
-    // Jika 'all', dateQuery tetap kosong (ambil semua)
+    // Jika 'all', query tanggal kosong (ambil semua)
 
     // 2. Buat Query Database
     const query: any = {
-      status: { $in: ['processed', 'delivered'] }
+      status: { $in: ['processed', 'delivered'] } // Hanya yang sudah lunas/selesai
     };
 
-    // Jika ada filter waktu, tambahkan ke query
+    // Jika ada filter waktu (bukan 'all'), tambahkan ke query
     if (filter !== 'all') {
       query.createdAt = dateQuery;
     }
@@ -51,14 +51,14 @@ export async function getCompletedOrdersWithItems(filter: string = 'all'): Promi
       .populate('user', 'name')
       .sort({ createdAt: -1 });
 
-    // 4. Olah data
+    // 4. Olah data untuk tabel
     const soldItems: IOrderItem[] = [];
     completedOrders.forEach(order => {
-      order.items.forEach((item: any) => { // Menggunakan 'items' sesuai model Anda yang sudah diperbaiki
+      order.items.forEach((item: any) => { 
         soldItems.push({
           orderDate: order.createdAt.toISOString(),
           name: item.name,
-          quantity: item.quantity, // Pastikan field ini sesuai dengan schema item Anda
+          quantity: item.quantity,
           price: item.price,
           customerName: order.user?.name || 'Guest',
         });

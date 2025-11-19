@@ -37,7 +37,6 @@ export default function ProductForm() {
   };
 
   return (
-    // Menggunakan Card tema terang (default)
     <Card>
       <CardHeader>
         <CardTitle>Tambah Produk Baru</CardTitle>
@@ -65,15 +64,16 @@ export default function ProductForm() {
                 <SelectItem value="Kalung">Kalung</SelectItem>
                 <SelectItem value="Cincin">Cincin</SelectItem>
                 <SelectItem value="Keychain">Keychain</SelectItem>
+                {/* --- KATEGORI BARU --- */}
+                <SelectItem value="Strap Handphone">Strap Handphone</SelectItem>
+                <SelectItem value="Jam Manik">Jam Manik</SelectItem>
+                {/* --------------------- */}
               </SelectContent>
             </Select>
           </div>
           
           <div className="space-y-1.5">
             <Label htmlFor="description">Deskripsi</Label>
-            {/* PERBAIKAN DI SINI: 
-              'min-h-[80px]' dipindahkan ke dalam 'className'
-            */}
             <Textarea 
               id="description" 
               name="description" 
