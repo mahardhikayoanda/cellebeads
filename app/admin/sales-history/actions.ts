@@ -4,35 +4,63 @@
 import dbConnect from '@/lib/dbConnect';
 import Order from '@/models/Order';
 
-// Tipe data baru untuk item yang terjual
 export interface IOrderItem {
-  orderDate: string; // Tanggal pesanan dibuat
-  name: string;      // Nama produk
-  quantity: number;  // Jumlah terjual
-  price: number;     // Harga satuan saat itu
-  customerName: string; // Nama pelanggan
+  orderDate: string;
+  name: string;
+  quantity: number;
+  price: number;
+  customerName: string;
 }
 
-export async function getCompletedOrdersWithItems(): Promise<IOrderItem[]> {
+// Terima parameter filter (default: 'all')
+export async function getCompletedOrdersWithItems(filter: string = 'all'): Promise<IOrderItem[]> {
   await dbConnect();
   try {
-    // 1. Ambil semua pesanan yang sudah 'processed' atau 'delivered'
-    const completedOrders = await Order.find({ 
-      status: { $in: ['processed', 'delivered'] } 
-    })
-    .populate('user', 'name') // Ambil nama user
-    .sort({ createdAt: -1 }); // Urutkan dari terbaru
+    // 1. Tentukan Rentang Waktu (Date Query)
+    let dateQuery: any = {};
+    const now = new Date();
 
-    // 2. Olah data menjadi daftar item
+    if (filter === 'daily') {
+      // Harian: Dari jam 00:00 hari ini sampai sekarang
+      const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+      dateQuery = { $gte: startOfDay };
+    } else if (filter === 'weekly') {
+      // Mingguan: 7 hari terakhir
+      const lastWeek = new Date();
+      lastWeek.setDate(now.getDate() - 7);
+      dateQuery = { $gte: lastWeek };
+    } else if (filter === 'monthly') {
+      // Bulanan: Dari tanggal 1 bulan ini
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      dateQuery = { $gte: startOfMonth };
+    }
+    // Jika 'all', dateQuery tetap kosong (ambil semua)
+
+    // 2. Buat Query Database
+    const query: any = {
+      status: { $in: ['processed', 'delivered'] }
+    };
+
+    // Jika ada filter waktu, tambahkan ke query
+    if (filter !== 'all') {
+      query.createdAt = dateQuery;
+    }
+
+    // 3. Eksekusi Query
+    const completedOrders = await Order.find(query)
+      .populate('user', 'name')
+      .sort({ createdAt: -1 });
+
+    // 4. Olah data
     const soldItems: IOrderItem[] = [];
     completedOrders.forEach(order => {
-      order.items.forEach(item => {
+      order.items.forEach((item: any) => { // Menggunakan 'items' sesuai model Anda yang sudah diperbaiki
         soldItems.push({
-          orderDate: order.createdAt.toISOString(), // Simpan sebagai string ISO
+          orderDate: order.createdAt.toISOString(),
           name: item.name,
-          quantity: item.quantity,
+          quantity: item.quantity, // Pastikan field ini sesuai dengan schema item Anda
           price: item.price,
-          customerName: order.user?.name || 'N/A', // Ambil nama pelanggan
+          customerName: order.user?.name || 'Guest',
         });
       });
     });
@@ -41,6 +69,6 @@ export async function getCompletedOrdersWithItems(): Promise<IOrderItem[]> {
 
   } catch (error) {
     console.error('Error fetching sales history:', error);
-    return []; // Kembalikan array kosong jika gagal
+    return [];
   }
 }

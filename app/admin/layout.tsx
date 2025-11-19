@@ -6,44 +6,60 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation'; 
 import { motion } from 'framer-motion'; 
 import { cn } from '@/lib/utils'; 
-import { Box, ShoppingBag, BarChart, Home, Star } from 'lucide-react'; // <-- 1. IMPORT IKON 'Star'
+import { 
+  LayoutDashboard, // Ikon Dashboard
+  Box, 
+  ShoppingBag, 
+  BarChart, 
+  Star, 
+  ExternalLink, // Ikon Lihat Toko
+  LogOut 
+} from 'lucide-react'; 
+import { signOut } from 'next-auth/react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); 
 
   const navLinks = [
+    // 1. Link Dashboard Baru (Paling Atas)
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { href: '/admin/products', label: 'Kelola Produk', icon: Box },
     { href: '/admin/orders', label: 'Kelola Pesanan', icon: ShoppingBag },
     { href: '/admin/sales-history', label: 'Riwayat Penjualan', icon: BarChart },
-    // 2. TAMBAHKAN LINK BARU DI SINI
     { href: '/admin/reviews', label: 'Kelola Ulasan', icon: Star },
   ];
 
   return (
-    <div className="flex min-h-screen"> 
+    <div className="flex min-h-screen bg-stone-50"> 
       
-      <aside className="w-64 bg-stone-100 text-stone-800 p-6 border-r border-stone-200 flex flex-col">
-        <h2 className="text-2xl font-lora font-semibold text-primary mb-8">
-          Admin Panel
-        </h2>
-        <nav className="grow">
-          <ul className="space-y-2">
+      <aside className="w-64 bg-white text-stone-800 border-r border-stone-200 flex flex-col shadow-sm fixed h-full z-10">
+        <div className="p-6 border-b border-stone-100">
+            <h2 className="text-2xl font-lora font-bold text-primary">
+            Admin Panel
+            </h2>
+            <p className="text-xs text-stone-500 mt-1">Cellebeads Management</p>
+        </div>
+        
+        <nav className="grow p-4 overflow-y-auto">
+          <ul className="space-y-1">
             {navLinks.map((link) => {
-              // 3. UBAH LOGIKA 'isActive' agar lebih fleksibel
-              // Sekarang /admin/products/edit akan tetap menyorot /admin/products
-              const isActive = pathname.startsWith(link.href);
+              // Logika active state yang lebih presisi
+              const isActive = link.exact 
+                ? pathname === link.href
+                : pathname.startsWith(link.href);
+
               return (
                 <li key={link.href}>
                   <Link 
                     href={link.href} 
                     className={cn(
-                      "flex items-center p-3 rounded-lg font-medium transition-colors",
+                      "flex items-center p-3 rounded-md font-medium transition-all duration-200",
                       isActive 
-                        ? "bg-primary text-primary-foreground" 
-                        : "text-stone-700 hover:bg-stone-200" 
+                        ? "bg-primary/10 text-primary" 
+                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-900" 
                     )}
                   >
-                    <link.icon size={18} className="mr-3" />
+                    <link.icon size={20} className="mr-3" />
                     {link.label}
                   </Link>
                 </li>
@@ -51,20 +67,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </ul>
         </nav>
-        <div className="mt-auto">
-             <Link href="/" className="flex items-center text-sm text-stone-500 hover:text-primary transition-colors">
-                <Home size={16} className="mr-2" />
-                Kembali ke Toko
+
+        {/* Footer Sidebar */}
+        <div className="p-4 border-t border-stone-200 bg-stone-50 space-y-2">
+             {/* 2. Tombol Lihat Toko */}
+             <Link 
+                href="/" 
+                target="_blank" // Buka di tab baru agar admin tidak tertutup
+                className="flex items-center justify-center w-full p-2 rounded-md border border-stone-300 bg-white text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
+             >
+                <ExternalLink size={16} className="mr-2" />
+                Lihat Tampilan Toko
              </Link>
+
+             <button 
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="flex items-center justify-center w-full p-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+             >
+                <LogOut size={16} className="mr-2" />
+                Logout
+             </button>
         </div>
       </aside>
 
+      {/* Area Konten Utama */}
       <motion.main 
         key={pathname} 
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex-1 p-8 bg-white text-foreground overflow-y-auto"
+        transition={{ duration: 0.2 }}
+        className="flex-1 p-8 ml-64 overflow-y-auto min-h-screen"
       >
         {children}
       </motion.main>
