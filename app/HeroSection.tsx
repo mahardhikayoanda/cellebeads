@@ -8,8 +8,8 @@ import Link from 'next/link';
 // Varian animasi untuk teks
 const textVariant = {
   hidden: { opacity: 0, x: -50 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
     transition: { type: 'spring', stiffness: 100, delay: 0.2 }
   }
@@ -18,8 +18,8 @@ const textVariant = {
 // Varian animasi untuk deskripsi dan tombol
 const contentVariant = {
   hidden: { opacity: 0, x: 50 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
     transition: { type: 'spring', stiffness: 100, delay: 0.4 }
   }
@@ -29,7 +29,7 @@ export default function HeroSection() {
   return (
     <div className="relative z-10 text-center md:text-left md:w-1/2">
       {/* Judul yang dianimasikan */}
-      <motion.h1 
+      <motion.h1
         className="text-4xl lg:text-5xl font-lora font-semibold text-foreground mb-4 leading-tight"
         variants={textVariant}
         initial="hidden"
