@@ -13,6 +13,7 @@ export default auth((req) => {
   const isOnCheckout = nextUrl.pathname.startsWith('/checkout');
   const isOnFinishProfile = nextUrl.pathname.startsWith('/finish-profile');
   const isOnLogin = nextUrl.pathname.startsWith('/login');
+  const isOnCart = nextUrl.pathname.startsWith('/cart'); // <-- 1. Definisikan Rute Cart
   
   // Rute Customer Baru
   const isOnMyOrders = nextUrl.pathname.startsWith('/dashboard/my-orders');
@@ -34,18 +35,25 @@ export default auth((req) => {
     }
   }
 
-  // 3. ALUR WAJIB ONBOARDING
+  // --- 3. BLOKIR ADMIN DARI CART (LOGIKA BARU) ---
+  // Jika Admin mencoba akses /cart, lempar ke dashboard admin
+  if (isOnCart && isLoggedIn && user?.role === 'admin') {
+     return Response.redirect(new URL('/admin/products', nextUrl));
+  }
+  // -----------------------------------------------
+
+  // 4. ALUR WAJIB ONBOARDING
   if (isLoggedIn && user?.role === 'customer' && !user?.profileComplete) {
     if (isOnFinishProfile) return; 
     return Response.redirect(new URL('/finish-profile', nextUrl));
   }
   
-  // 4. JANGAN BOLEHKAN USER LENGKAP MENGAKSES /finish-profile
+  // 5. JANGAN BOLEHKAN USER LENGKAP MENGAKSES /finish-profile
   if (isLoggedIn && user?.profileComplete && isOnFinishProfile) {
     return Response.redirect(new URL('/', nextUrl));
   }
 
-  // 5. JANGAN BOLEHKAN USER LOGIN MENGAKSES /login
+  // 6. JANGAN BOLEHKAN USER LOGIN MENGAKSES /login
   if (isLoggedIn && isOnLogin) {
      return Response.redirect(new URL('/', nextUrl));
   }
@@ -55,8 +63,8 @@ export default auth((req) => {
 export const config = {
   matcher: [
       '/admin/:path*', 
-      '/dashboard/:path*', // Tetap lindungi semua /dashboard
-      '/profile',         // <-- Tambahkan Halaman Profil
+      '/dashboard/:path*', 
+      '/profile',         
       '/checkout',
       '/cart', 
       '/products/:path*', 

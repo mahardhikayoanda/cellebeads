@@ -1,5 +1,6 @@
 // File: app/admin/products/ProductForm.tsx
 'use client'; 
+
 import { useState, useRef } from 'react';
 import { createProduct } from './actions'; 
 import { Button } from '@/components/ui/button';
@@ -12,20 +13,63 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function ProductForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const [category, setCategory] = useState("Gelang"); 
+  
+  // 1. UBAH DI SINI: Inisialisasi dengan string kosong "" agar muncul placeholder
+  const [category, setCategory] = useState(""); 
+  
+  // State untuk tampilan harga (Rp ...)
+  const [displayPrice, setDisplayPrice] = useState(""); 
+
+  // Fungsi format Rupiah
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numberString = value.replace(/[^0-9]/g, '');
+    
+    if (!numberString) {
+      setDisplayPrice("");
+      return;
+    }
+
+    const formatted = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Number(numberString));
+
+    setDisplayPrice(formatted);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validasi tambahan: Pastikan kategori dipilih
+    if (!category) {
+        alert("Mohon pilih kategori produk terlebih dahulu.");
+        return;
+    }
+
     setIsLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
+      
+      // Proses harga (hapus Rp dan titik)
+      const rawPrice = displayPrice.replace(/[^0-9]/g, '');
+      formData.set('price', rawPrice); 
+      
+      // Set kategori dari state
       formData.set('category', category); 
+
       const result = await createProduct(formData);
 
       if (result.success) {
         alert("Produk berhasil ditambahkan!");
         formRef.current?.reset();
-        setCategory("Gelang"); 
+        
+        // 2. UBAH DI SINI: Reset kategori kembali ke kosong
+        setCategory(""); 
+        
+        setDisplayPrice(""); // Reset harga
       } else {
         alert("Gagal: " + result.message);
       }
@@ -51,10 +95,12 @@ export default function ProductForm() {
 
           <div className="space-y-1.5">
             <Label htmlFor="category">Kategori</Label>
+            {/* 3. Select akan menampilkan placeholder karena value awalnya "" */}
             <Select 
               value={category} 
               onValueChange={setCategory} 
               name="category" 
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih Kategori" />
@@ -64,10 +110,8 @@ export default function ProductForm() {
                 <SelectItem value="Kalung">Kalung</SelectItem>
                 <SelectItem value="Cincin">Cincin</SelectItem>
                 <SelectItem value="Keychain">Keychain</SelectItem>
-                {/* --- KATEGORI BARU --- */}
                 <SelectItem value="Strap Handphone">Strap Handphone</SelectItem>
                 <SelectItem value="Jam Manik">Jam Manik</SelectItem>
-                {/* --------------------- */}
               </SelectContent>
             </Select>
           </div>
@@ -86,7 +130,15 @@ export default function ProductForm() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="price">Harga</Label>
-              <Input id="price" name="price" type="number" required />
+              <Input 
+                id="price" 
+                name="price" 
+                type="text" 
+                placeholder="Rp 0" 
+                value={displayPrice}
+                onChange={handlePriceChange}
+                required 
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="stock">Stok</Label>

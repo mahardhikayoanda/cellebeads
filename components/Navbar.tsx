@@ -76,8 +76,9 @@ export default function Navbar() {
         {/* 4. Ikon Kanan (Cart & User) */}
         <div className="flex items-center space-x-1 md:space-x-2">
           
-          {/* Tombol Keranjang */}
-          {(!session || profileComplete) && (
+          {/* Tombol Keranjang - DIHILANGKAN UNTUK ADMIN */}
+          {/* Logika: Tampil jika (Belum Login) ATAU (Sudah Login DAN Profil Lengkap DAN Bukan Admin) */}
+          {(!session || (profileComplete && userRole !== 'admin')) && (
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative" title="Keranjang">
                 <ShoppingCart className="h-5 w-5" />

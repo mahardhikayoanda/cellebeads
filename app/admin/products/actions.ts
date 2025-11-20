@@ -45,8 +45,8 @@ export async function createProduct(formData: FormData) {
     
     await newProduct.save();
     
-    revalidatePath('/admin/products'); // Refresh admin
-    revalidatePath('/products'); // <-- TAMBAHAN: Refresh halaman katalog pelanggan
+    revalidatePath('/admin/products'); 
+    revalidatePath('/products'); 
     
     return { success: true, message: 'Produk berhasil ditambahkan' };
   } catch (error: any) {
@@ -58,9 +58,7 @@ export async function createProduct(formData: FormData) {
 export async function getProducts(categoryFilter?: string): Promise<IProduct[]> {
   await dbConnect();
   try {
-    // Logika filter: Jika filter ada dan bukan 'Semua', filter berdasarkan kategori
     const query = categoryFilter && categoryFilter !== 'Semua' ? { category: categoryFilter } : {};
-    
     const products = await Product.find(query).sort({ createdAt: -1 });
     
     return JSON.parse(JSON.stringify(products)).map((p: any) => ({
@@ -92,18 +90,76 @@ export async function deleteProduct(productId: string) {
 
     const imagesToDelete = product.images || (product.image ? [product.image] : []);
     if (imagesToDelete.length > 0) {
-      await Promise.all(imagesToDelete.map((url: string) => del(url)));
+      // Hapus gambar dari Vercel Blob agar tidak menumpuk sampah file
+      await Promise.all(imagesToDelete.map((url: string) => del(url).catch(e => console.error(e))));
     }
 
     await Product.findByIdAndDelete(productId);
+    
     revalidatePath('/admin/products');
-    revalidatePath('/products'); // Refresh halaman pelanggan juga
+    revalidatePath('/products'); 
     return { success: true, message: 'Produk berhasil dihapus' };
   } catch (error: any) {
     return { success: false, message: error.message };
   }
 }
 
+// 4. UPDATE (Bagian ini yang diperbaiki)
 export async function updateProduct(formData: FormData) {
-    return { success: false, message: "Fitur Edit belum support update." };
+  await dbConnect();
+
+  try {
+    const id = formData.get('id') as string;
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const price = Number(formData.get('price'));
+    const stock = Number(formData.get('stock'));
+    
+    // Ambil data gambar dari form
+    const newImageFile = formData.get('newImage') as File; 
+    const oldImageUrl = formData.get('oldImageUrl') as string;
+
+    let finalImages: string[] = [oldImageUrl]; // Default pakai gambar lama
+
+    // Jika ada gambar baru yang diupload user
+    if (newImageFile && newImageFile.size > 0) {
+        // 1. Upload gambar baru ke Vercel Blob
+        const blob = await put(newImageFile.name, newImageFile, { 
+            access: 'public', 
+            addRandomSuffix: true 
+        });
+        
+        // 2. Gunakan URL baru
+        finalImages = [blob.url];
+
+        // 3. Hapus gambar lama dari Blob Storage (Jika bukan placeholder default)
+        if (oldImageUrl && !oldImageUrl.includes('placeholder')) {
+           try {
+             await del(oldImageUrl);
+           } catch (err) {
+             console.log("Gagal hapus gambar lama, tapi lanjut update data.", err);
+           }
+        }
+    }
+
+    // Update Data di MongoDB
+    await Product.findByIdAndUpdate(id, {
+      name,
+      description,
+      price,
+      stock,
+      images: finalImages, 
+    });
+
+    // Refresh cache halaman agar data terbaru langsung muncul
+    revalidatePath('/admin/products');
+    revalidatePath('/products');
+    revalidatePath(`/products/${id}`); // Refresh halaman detail produk
+
+    return { success: true, message: 'Produk berhasil diperbarui!' };
+
+  } catch (error: any) {
+    console.error("Update error:", error);
+    return { success: false, message: error.message || 'Gagal mengupdate produk' };
+  }
 }
