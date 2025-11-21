@@ -6,78 +6,65 @@ import OrderClientActions from './OrderClientActions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-// Varian animasi
-const listVariant = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.03 } }
-};
-const itemVariant = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0 }
-};
-
 export default function OrderTable({ orders }: { orders: IOrder[] }) {
   return (
     <div className="overflow-x-auto">
       <Table>
-        <TableHeader className="bg-slate-50">
-          <TableRow>
-            <TableHead className="w-[100px] text-slate-600 font-semibold">ID</TableHead>
-            <TableHead className="text-slate-600 font-semibold">Tanggal</TableHead>
-            <TableHead className="text-slate-600 font-semibold">Pelanggan</TableHead>
-            <TableHead className="text-slate-600 font-semibold">Item</TableHead>
-            <TableHead className="text-right text-slate-600 font-semibold">Total</TableHead>
-            <TableHead className="text-center text-slate-600 font-semibold">Status</TableHead>
-            <TableHead className="text-center text-slate-600 font-semibold">Aksi</TableHead>
+        <TableHeader className="bg-stone-50/50">
+          <TableRow className="hover:bg-transparent border-stone-100">
+            <TableHead className="pl-6 font-semibold text-stone-600">ID Order</TableHead>
+            <TableHead className="font-semibold text-stone-600">Tanggal</TableHead>
+            <TableHead className="font-semibold text-stone-600">Pelanggan</TableHead>
+            <TableHead className="font-semibold text-stone-600">Item</TableHead>
+            <TableHead className="text-right font-semibold text-stone-600">Total</TableHead>
+            <TableHead className="text-center font-semibold text-stone-600">Status</TableHead>
+            <TableHead className="text-center pr-6 font-semibold text-stone-600">Aksi</TableHead>
           </TableRow>
         </TableHeader>
-        <motion.tbody variants={listVariant} initial="hidden" animate="visible">
+        <motion.tbody 
+          initial="hidden" animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+        >
           {orders.map((order) => (
             <motion.tr 
-              variants={itemVariant} 
+              variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
               key={order._id} 
-              className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
+              className="border-b border-stone-50 hover:bg-stone-50/30 transition-colors"
             >
-              <TableCell className="font-mono text-xs text-slate-500">
+              <TableCell className="pl-6 font-mono text-xs text-stone-400">
                 #{order._id.substring(order._id.length - 6).toUpperCase()}
               </TableCell>
-              <TableCell className="text-sm text-slate-600">
+              <TableCell className="text-sm text-stone-600">
                 {new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </TableCell>
-              <TableCell className="font-medium text-slate-800">
+              <TableCell>
                 <div className="flex flex-col">
-                  <span>{order.user?.name || 'Guest'}</span>
-                  <span className="text-xs text-slate-400 font-normal">{order.user?.email}</span>
+                  <span className="font-medium text-stone-800">{order.user?.name || 'Guest'}</span>
+                  <span className="text-[10px] text-stone-400">{order.user?.email}</span>
                 </div>
               </TableCell>
-              <TableCell className="text-sm text-slate-600">
-                 <span className="truncate max-w-[200px] block" title={order.items.map(i => i.name).join(', ')}>
+              <TableCell className="text-sm text-stone-600">
+                 <span className="truncate max-w-[150px] block" title={order.items.map(i => i.name).join(', ')}>
                     {order.items.length} Barang 
-                    <span className="text-xs text-slate-400 ml-1">
+                    <span className="text-xs text-stone-400 ml-1 italic">
                       ({order.items[0].name}{order.items.length > 1 ? '...' : ''})
                     </span>
                  </span>
               </TableCell>
-              <TableCell className="text-right font-semibold text-slate-800">
+              <TableCell className="text-right font-bold text-stone-700">
                 Rp {order.totalPrice.toLocaleString('id-ID')}
               </TableCell>
               <TableCell className="text-center">
-                <Badge variant={
-                    order.status === 'pending' ? 'destructive' : 
-                    order.status === 'processed' ? 'secondary' : 
-                    order.status === 'delivered' ? 'default' :   
-                    'outline'
-                } className={`
-                    ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100' : ''}
-                    ${order.status === 'processed' ? 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100' : ''}
-                    ${order.status === 'delivered' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100' : ''}
-                    capitalize shadow-none border px-2 py-0.5 h-6
+                <Badge variant="outline" className={`
+                    ${order.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : ''}
+                    ${order.status === 'processed' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
+                    ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ''}
+                    capitalize font-normal shadow-none px-2.5 py-0.5
                 `}>
-                    {order.status === 'delivered' ? 'Selesai' : order.status}
+                    {order.status === 'delivered' ? 'Selesai' : (order.status === 'pending' ? 'Menunggu' : 'Diproses')}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">
-                {/* PERUBAHAN: Hapus class opacity agar tombol selalu terlihat */}
+              <TableCell className="text-center pr-6">
                 <div className="flex justify-center">
                    <OrderClientActions orderId={order._id} status={order.status} />
                 </div>
@@ -86,8 +73,8 @@ export default function OrderTable({ orders }: { orders: IOrder[] }) {
           ))}
           {orders.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-slate-400 py-12">
-                Belum ada pesanan masuk.
+              <TableCell colSpan={7} className="text-center text-stone-400 py-16 italic bg-stone-50/20">
+                Belum ada pesanan masuk saat ini.
               </TableCell>
             </TableRow>
           )}

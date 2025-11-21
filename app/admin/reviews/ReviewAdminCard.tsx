@@ -6,10 +6,8 @@ import { IReviewPopulated, replyToReview } from './actions';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Star, MessageSquare, User, Calendar, Reply } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card } from "@/components/ui/card";
+import { Star, Reply } from 'lucide-react';
 
 export default function ReviewAdminCard({ review }: { review: IReviewPopulated }) {
   const [replyText, setReplyText] = useState(review.adminReply || '');
@@ -19,113 +17,85 @@ export default function ReviewAdminCard({ review }: { review: IReviewPopulated }
   const handleReply = async () => {
     if (!replyText.trim()) return;
     setIsLoading(true);
-    const res = await replyToReview(review._id, replyText);
-    if (res.success) {
-      alert("Balasan terkirim!");
-      setIsEditing(false);
-    } else {
-      alert("Gagal: " + res.message);
-    }
+    await replyToReview(review._id, replyText);
+    setIsEditing(false);
     setIsLoading(false);
   };
 
   return (
-    <Card className="overflow-hidden border-stone-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+    <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-white rounded-xl">
       <div className="flex flex-col md:flex-row">
         
-        {/* KIRI: Info Produk & Foto */}
-        <div className="w-full md:w-48 bg-stone-50 p-4 flex flex-col items-center justify-center border-r border-stone-100">
-           <div className="relative w-24 h-24 rounded-md overflow-hidden border border-stone-200 mb-3">
-             {/* Gambar Produk */}
+        {/* Kolom Gambar Produk */}
+        <div className="w-full md:w-40 bg-stone-50 p-4 flex flex-col items-center justify-center border-r border-stone-50">
+           <div className="relative w-20 h-20 rounded-lg overflow-hidden shadow-sm">
              <Image 
                src={review.product?.image || '/placeholder.jpg'} 
                alt="Product" fill className="object-cover" 
              />
            </div>
-           <p className="text-xs text-center font-medium text-stone-600 line-clamp-2">
-             {review.product?.name || 'Produk Dihapus'}
+           <p className="text-[10px] text-center font-bold text-stone-500 mt-2 uppercase tracking-wide line-clamp-1">
+             {review.product?.name}
            </p>
         </div>
 
-        {/* KANAN: Konten Ulasan */}
-        <div className="flex-1 p-6 flex flex-col">
+        {/* Kolom Konten */}
+        <div className="flex-1 p-6">
            
-           {/* Header Ulasan */}
-           <div className="flex justify-between items-start mb-4">
+           {/* Header Rating & User */}
+           <div className="flex justify-between items-start mb-3">
              <div>
-                <div className="flex items-center gap-2 mb-1">
-                   <Badge variant="outline" className="gap-1 bg-yellow-50 text-yellow-700 border-yellow-200">
-                      {review.rating} <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                   </Badge>
-                   <span className="text-sm text-stone-400 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(review.createdAt).toLocaleDateString('id-ID')}
-                   </span>
+                <div className="flex items-center gap-1 mb-1">
+                   {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-stone-200'}`} />
+                   ))}
                 </div>
-                <h4 className="font-semibold text-stone-800 flex items-center gap-2">
-                   <User className="w-4 h-4 text-stone-400" />
+                <h4 className="font-semibold text-stone-800 text-sm">
                    {review.user?.name}
-                   <span className="text-xs font-normal text-stone-400">({review.user?.email})</span>
+                   <span className="text-stone-400 font-normal ml-1">• {new Date(review.createdAt).toLocaleDateString('id-ID')}</span>
                 </h4>
              </div>
            </div>
 
-           {/* Isi Komentar & Foto Ulasan */}
-           <div className="mb-6">
-              <p className="text-stone-700 text-sm leading-relaxed bg-stone-50/50 p-3 rounded-lg border border-stone-100 italic">
-                "{review.comment}"
-              </p>
+           {/* Komentar */}
+           <div className="bg-stone-50/50 p-3 rounded-lg border border-stone-50 mb-4">
+              <p className="text-stone-700 text-sm italic leading-relaxed">"{review.comment}"</p>
               {review.image && (
-                <div className="mt-3">
-                   <p className="text-xs text-stone-400 mb-1">Foto dari pelanggan:</p>
-                   <a href={review.image} target="_blank" rel="noopener noreferrer" className="inline-block">
-                     <Image 
-                        src={review.image} alt="Review" width={80} height={80} 
-                        className="rounded-md border border-stone-200 hover:scale-105 transition-transform"
-                     />
+                <div className="mt-3 pt-3 border-t border-stone-100">
+                   <a href={review.image} target="_blank" rel="noreferrer" className="text-xs text-primary underline hover:text-primary/80">
+                     Lihat Foto Lampiran
                    </a>
                 </div>
               )}
            </div>
 
-           {/* AREA BALASAN ADMIN */}
-           <div className="mt-auto border-t border-stone-100 pt-4">
+           {/* Area Balasan */}
+           <div>
               {isEditing ? (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                   <p className="text-sm font-medium text-stone-700 flex items-center gap-2">
-                      <Reply className="w-4 h-4" /> Balas Ulasan:
-                   </p>
+                <div className="animate-in fade-in space-y-2">
                    <Textarea 
                       value={replyText} 
                       onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Tulis ucapan terima kasih atau tanggapan Anda..."
-                      className="min-h-[80px] bg-stone-50"
+                      placeholder="Tulis balasan Anda..."
+                      className="min-h-[60px] text-sm bg-white border-stone-200 focus:border-primary/50"
                    />
                    <div className="flex justify-end gap-2">
-                      {review.adminReply && (
-                        <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>Batal</Button>
-                      )}
-                      <Button size="sm" onClick={handleReply} disabled={isLoading} className="bg-blue-500 hover:bg-blue-500">
-                        {isLoading ? 'Mengirim...' : 'Kirim Balasan'}
+                      {review.adminReply && <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>Batal</Button>}
+                      <Button size="sm" onClick={handleReply} disabled={isLoading} className="bg-stone-800 hover:bg-stone-700 text-white">
+                        {isLoading ? '...' : 'Kirim'}
                       </Button>
                    </div>
                 </div>
               ) : (
-                <div className="bg-blue-50/50 p-3 rounded-md border border-blue-100">
-                   <div className="flex justify-between items-start mb-1">
-                      <p className="text-xs font-bold text-blue-700 uppercase tracking-wide">Respon Anda</p>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditing(true)}>
-                         <MessageSquare className="w-3 h-3 text-blue-400" />
-                      </Button>
-                   </div>
-                   <p className="text-sm text-stone-700">{review.adminReply}</p>
-                   <p className="text-[10px] text-stone-400 mt-1 text-right">
-                      {review.adminReplyDate ? new Date(review.adminReplyDate).toLocaleString('id-ID') : ''}
+                <div className="bg-primary/5 p-3 rounded-lg border border-primary/10 relative group cursor-pointer" onClick={() => setIsEditing(true)}>
+                   <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1 flex items-center gap-1">
+                     <Reply size={12}/> Respon Anda
                    </p>
+                   <p className="text-sm text-stone-600">{review.adminReply}</p>
+                   <span className="absolute top-2 right-2 text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">Klik untuk edit</span>
                 </div>
               )}
            </div>
-
         </div>
       </div>
     </Card>

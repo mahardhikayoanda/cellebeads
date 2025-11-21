@@ -16,7 +16,9 @@ export interface IReviewPopulated {
   adminReplyDate?: string;
   // Relasi
   user: { name: string; email: string };
-  product: { _id: string; name: string; image: string };
+  product: {
+      category: string; _id: string; name: string; image: string 
+};
 }
 
 // 1. AMBIL SEMUA ULASAN

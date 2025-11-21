@@ -4,14 +4,11 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, LogOut, Menu, Package, LayoutDashboard } from 'lucide-react'; 
+import { ShoppingCart, User, LogOut, Menu, Package, LayoutDashboard, Search } from 'lucide-react'; 
 import { useCart } from '@/context/CartContext';
+import { motion } from 'framer-motion'; // Tambah animasi
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet" 
 
 export default function Navbar() {
@@ -23,31 +20,38 @@ export default function Navbar() {
   const profileComplete = (session?.user as any)?.profileComplete;
 
   return (
-    <nav className="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    // Ganti background solid dengan backdrop-blur (Glassmorphism)
+    <motion.nav 
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+      className="sticky top-0 z-50 border-b border-white/20 bg-white/80 backdrop-blur-md shadow-sm"
+    >
+      <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
         
-        {/* 1. Menu Mobile (Hamburger) - Kiri */}
+        {/* 1. Mobile Menu */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent side="left" className="bg-white/95 backdrop-blur-xl border-r-primary/20">
               <SheetHeader>
-                <SheetTitle className="text-left font-lora text-2xl font-bold text-primary mb-4">Cellebeads</SheetTitle>
+                <SheetTitle className="text-left font-lora text-3xl font-bold text-primary mb-6 italic">Cellebeads</SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-4 mt-4">
-                <Link href="/" className="text-lg font-medium hover:text-primary">Beranda</Link>
-                <Link href="/products" className="text-lg font-medium hover:text-primary">Katalog Produk</Link>
-                <Link href="/about" className="text-lg font-medium hover:text-primary">Tentang Kami</Link>
+              <div className="flex flex-col gap-6 mt-8">
+                <Link href="/" className="text-xl font-medium hover:text-primary transition-colors font-lora">Beranda</Link>
+                <Link href="/products" className="text-xl font-medium hover:text-primary transition-colors font-lora">Koleksi</Link>
+                <Link href="/about" className="text-xl font-medium hover:text-primary transition-colors font-lora">Cerita Kami</Link>
                 
-                {/* Link Dinamis di Mobile */}
+                <div className="h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent my-2" />
+
                 {session && userRole === 'customer' && profileComplete && (
                    <>
-                     <Link href="/dashboard/my-orders" className="text-lg font-medium text-emerald-600">Pesanan Saya</Link>
-                     <Link href="/profile" className="text-lg font-medium">Profil Saya</Link>
+                     <Link href="/dashboard/my-orders" className="text-lg font-medium text-stone-600 hover:text-primary">Pesanan Saya</Link>
+                     <Link href="/profile" className="text-lg font-medium text-stone-600 hover:text-primary">Profil Saya</Link>
                    </>
                 )}
                 {session && userRole === 'admin' && (
@@ -58,63 +62,67 @@ export default function Navbar() {
           </Sheet>
         </div>
 
-        {/* 2. Logo */}
-        <Link href="/" className="text-2xl font-lora font-semibold text-primary">
-          Cellebeads
+        {/* 2. Logo (Tengah di Mobile, Kiri di Desktop) */}
+        <Link href="/" className="text-3xl font-lora font-bold text-primary tracking-tight hover:opacity-80 transition-opacity">
+          Cellebeads<span className="text-yellow-500">.</span>
         </Link>
 
-        {/* 3. Menu Desktop */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link href="/products" className="text-foreground hover:text-primary transition-colors">
-            Produk
+        {/* 3. Menu Desktop (Centered) */}
+        <div className="hidden md:flex items-center space-x-8 bg-stone-100/50 px-8 py-2 rounded-full border border-white/50">
+          <Link href="/" className="text-sm font-medium text-stone-600 hover:text-primary uppercase tracking-widest transition-colors">
+            Beranda
           </Link>
-          <Link href="/about" className="text-foreground hover:text-primary transition-colors">
+          <Link href="/products" className="text-sm font-medium text-stone-600 hover:text-primary uppercase tracking-widest transition-colors">
+            Koleksi
+          </Link>
+          <Link href="/about" className="text-sm font-medium text-stone-600 hover:text-primary uppercase tracking-widest transition-colors">
             Tentang
           </Link>
         </div>
 
-        {/* 4. Ikon Kanan (Cart & User) */}
-        <div className="flex items-center space-x-1 md:space-x-2">
+        {/* 4. Ikon Kanan */}
+        <div className="flex items-center space-x-2">
           
-          {/* Tombol Keranjang - DIHILANGKAN UNTUK ADMIN */}
-          {/* Logika: Tampil jika (Belum Login) ATAU (Sudah Login DAN Profil Lengkap DAN Bukan Admin) */}
+          {/* Search Icon (Hiasan/Future Feature) */}
+          <Button variant="ghost" size="icon" className="hidden md:flex text-stone-500 hover:text-primary hover:bg-primary/5">
+            <Search className="h-5 w-5" />
+          </Button>
+
           {(!session || (profileComplete && userRole !== 'admin')) && (
             <Link href="/cart">
-              <Button variant="ghost" size="icon" className="relative" title="Keranjang">
+              <Button variant="ghost" size="icon" className="relative text-stone-500 hover:text-primary hover:bg-primary/5 transition-all">
                 <ShoppingCart className="h-5 w-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                  <motion.span 
+                    initial={{ scale: 0 }} animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-md"
+                  >
                     {totalItems}
-                  </span>
+                  </motion.span>
                 )}
               </Button>
             </Link>
           )}
 
-          {/* 5. User Menu */}
           {session ? (
-            <div className="flex items-center">
-              {/* Tampilkan ikon HANYA JIKA profil sudah lengkap */}
+            <div className="flex items-center gap-1 pl-2 border-l border-stone-200 ml-2">
               {profileComplete && (
                 <>
                   {userRole === 'admin' ? (
                     <Link href="/admin/products">
-                      <Button variant="ghost" size="icon" title="Admin Panel">
+                      <Button variant="ghost" size="icon" title="Admin Panel" className="text-primary hover:bg-primary/10">
                         <LayoutDashboard className="h-5 w-5" />
                       </Button>
                     </Link>
                   ) : (
                     <>
-                      {/* Tombol PESANAN SAYA (Paket) */}
                       <Link href="/dashboard/my-orders">
-                        <Button variant="ghost" size="icon" title="Pesanan Saya">
+                        <Button variant="ghost" size="icon" title="Pesanan Saya" className="hover:text-primary">
                           <Package className="h-5 w-5" />
                         </Button>
                       </Link>
-                      
-                      {/* Tombol PROFIL SAYA (User) */}
                       <Link href="/profile">
-                        <Button variant="ghost" size="icon" title="Profil Saya">
+                        <Button variant="ghost" size="icon" title="Profil Saya" className="hover:text-primary">
                           <User className="h-5 w-5" />
                         </Button>
                       </Link>
@@ -128,19 +136,20 @@ export default function Navbar() {
                 size="icon"
                 onClick={() => signOut({ callbackUrl: '/' })}
                 title="Logout"
+                className="text-stone-400 hover:text-red-500 hover:bg-red-50"
               >
-                <LogOut className="h-5 w-5 text-red-500" />
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           ) : (
-            // Tombol Login
             <Link href="/login">
-              <Button variant="default" size="sm" className="hidden md:flex">Masuk</Button>
-              <Button variant="ghost" size="icon" className="md:hidden" title="Login"><User className="h-5 w-5"/></Button>
+              <Button variant="default" size="sm" className="rounded-full px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
+                Masuk
+              </Button>
             </Link>
           )}
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

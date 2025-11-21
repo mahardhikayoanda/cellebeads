@@ -1,49 +1,75 @@
-/* File: app/globals.css */
-
-/* 1. Impor semua fitur Tailwind v4 dalam satu baris */
 @import "tailwindcss";
 
-/* 2. Definisikan variabel warna langsung (TIDAK di dalam @layer base) */
 :root {
-  /* Palet Warna Terang (Rose Pink & Stone) */
-  --background: 0 0% 100%; /* Putih */
-  --foreground: 24 9.8% 10%; /* Abu-abu Gelap Hangat */
+  /* Palet Warna: Soft Luxury (Cream, Dusty Rose, Gold, Charcoal) */
+  
+  /* Background: Warm White / Cream lembut, bukan putih murni yang menyilaukan */
+  --background: 30 20% 99%; 
+  --foreground: 340 5% 15%; /* Charcoal (Hitam kemerahan) */
+
   --card: 0 0% 100%;
-  --card-foreground: 24 9.8% 10%;
+  --card-foreground: 340 5% 15%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 24 9.8% 10%;
-  --primary: 346.8 77.2% 49.8%; /* Pink Mawar (Rose 600) */
-  --primary-foreground: 355.7 100% 97.3%; /* Pink Sangat Muda */
-  --secondary: 30 5.9% 90%; /* Abu-abu Krem Muda (Stone 200) */
-  --secondary-foreground: 24 9.8% 10%;
-  --muted: 24 5.4% 90.2%; /* Abu-abu Krem Lebih Muda */
-  --muted-foreground: 24 5.1% 40%;
-  --accent: 346.8 77.2% 49.8%; /* Pink Mawar */
-  --accent-foreground: 355.7 100% 97.3%;
+  --popover-foreground: 340 5% 15%;
+
+  /* Primary: Dusty Rose (Elegan, tidak norak) */
+  --primary: 340 40% 60%; 
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary: Gold / Sand (Untuk aksen mewah) */
+  --secondary: 35 40% 90%;
+  --secondary-foreground: 35 40% 30%;
+
+  --muted: 30 10% 96%;
+  --muted-foreground: 340 5% 45%;
+
+  /* Accent: Rose Gold lembut */
+  --accent: 340 30% 96%;
+  --accent-foreground: 340 40% 50%;
+
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 24 5.9% 90%; /* Abu-abu Krem Muda */
-  --input: 24 5.9% 90%;
-  --ring: 346.8 77.2% 49.8%; /* Pink Mawar */
-  --radius: 0.5rem;
+
+  --border: 340 10% 90%;
+  --input: 340 10% 90%;
+  
+  /* Ring: Gold lembut saat fokus */
+  --ring: 340 40% 70%; 
+
+  --radius: 0.75rem; /* Sudut sedikit lebih bulat */
 }
 
 .dark {
-  /* Palet Warna Gelap (Opsional) */
-  --background: 240 10% 3.9%; --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%; --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%; --popover-foreground: 0 0% 98%;
-  --primary: 346.8 77.2% 59.8%; --primary-foreground: 355.7 100% 97.3%;
-  --secondary: 240 3.7% 15.9%; --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%; --muted-foreground: 240 5% 64.9%;
-  --accent: 346.8 77.2% 59.8%; --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%; --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%; --input: 240 3.7% 15.9%;
-  --ring: 346.8 77.2% 59.8%;
+  /* Mode Gelap (Deep Luxury) */
+  --background: 340 10% 5%;
+  --foreground: 30 10% 90%;
+  --card: 340 10% 8%;
+  --card-foreground: 30 10% 90%;
+  --popover: 340 10% 8%;
+  --popover-foreground: 30 10% 90%;
+  --primary: 340 40% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 340 10% 15%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 340 10% 15%;
+  --muted-foreground: 340 5% 65%;
+  --accent: 340 10% 15%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 340 10% 15%;
+  --input: 340 10% 15%;
+  --ring: 340 40% 60%;
 }
 
-/* CATATAN: 
-  Kita tidak perlu @layer base untuk h1-h6 di sini.
-  Font default (font-sans / Lato) sudah diterapkan di app/layout.tsx.
-  Kita akan terapkan 'font-lora' (elegan) secara manual pada judul di file .tsx.
-*/
+/* Utilitas Tambahan untuk Scrollbar yang cantik */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+  }
+  .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+  }
+}
