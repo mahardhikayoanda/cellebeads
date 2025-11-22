@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 
 export default function OrderTable({ orders }: { orders: IOrder[] }) {
   return (
-    <div className="overflow-x-auto">
-      <Table>
+    <div className="overflow-x-auto pb-4">
+      {/* HAPUS KOMENTAR DI DALAM TABLE UNTUK MENGHINDARI ERROR HYDRATION */}
+      <Table className="min-w-[800px]">
         <TableHeader className="bg-stone-50/50">
           <TableRow className="hover:bg-transparent border-stone-100">
             <TableHead className="pl-6 font-semibold text-stone-600">ID Order</TableHead>
@@ -59,7 +60,7 @@ export default function OrderTable({ orders }: { orders: IOrder[] }) {
                     ${order.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : ''}
                     ${order.status === 'processed' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
                     ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ''}
-                    capitalize font-normal shadow-none px-2.5 py-0.5
+                    capitalize font-normal shadow-none px-2.5 py-0.5 whitespace-nowrap
                 `}>
                     {order.status === 'delivered' ? 'Selesai' : (order.status === 'pending' ? 'Menunggu' : 'Diproses')}
                 </Badge>

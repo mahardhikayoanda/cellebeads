@@ -3,11 +3,9 @@
 import { useCart, ICartItem } from '@/context/CartContext'; 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Button } from "@/components/ui/button";
 import { motion } from 'framer-motion'; 
-import { Plus, ShoppingBag } from 'lucide-react'; // Ikon baru
+import { ShoppingBag } from 'lucide-react'; 
 
-// ... (Interface tetap sama)
 interface IProduct {
   _id: string;
   name: string;
@@ -24,7 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const mainImage = product.images && product.images.length > 0 ? product.images[0] : '/placeholder-banner.jpg';
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault(); // Mencegah link diklik
+    e.preventDefault(); 
     const itemToAdd: ICartItem = {
       _id: product._id,
       name: product.name,
@@ -42,40 +40,36 @@ export default function ProductCard({ product }: ProductCardProps) {
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0 }
       }}
-      whileHover={{ y: -5 }} // Efek melayang saat hover
+      whileHover={{ y: -5 }} 
       className="group relative"
     >
-      {/* Container Kartu Tanpa Border Kasar */}
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-stone-100">
         
         <Link href={`/products/${product._id}`} className="block relative">
-          {/* Area Gambar */}
-          <div className="relative h-72 w-full overflow-hidden bg-stone-50">
+          {/* PERBAIKAN: Tinggi Gambar Responsif (h-40 di HP, h-72 di Desktop) */}
+          <div className="relative h-40 md:h-72 w-full overflow-hidden bg-stone-50">
             <Image 
               src={mainImage} 
               alt={product.name} 
-              layout="fill" 
-              objectFit="cover"
-              className="transition-transform duration-700 ease-in-out group-hover:scale-110"
+              fill 
+              className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
             />
             
-            {/* Overlay Gradient Halus */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-            {/* Badge Stok Habis */}
             {product.stock === 0 && (
               <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-                <span className="bg-stone-900 text-white text-xs font-bold px-3 py-1 rounded-full tracking-widest uppercase">
+                <span className="bg-stone-900 text-white text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 rounded-full tracking-widest uppercase">
                   Habis
                 </span>
               </div>
             )}
 
-            {/* Tombol Add to Cart yang Muncul saat Hover */}
+            {/* Tombol Cart (Hanya muncul di Desktop saat hover, di HP user klik detail dulu) */}
             {product.stock > 0 && (
                <button
                  onClick={handleAddToCart}
-                 className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 hover:bg-primary hover:text-white text-stone-800 rounded-full flex items-center justify-center shadow-lg translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out"
+                 className="hidden md:flex absolute bottom-4 right-4 w-10 h-10 bg-white/90 hover:bg-primary hover:text-white text-stone-800 rounded-full items-center justify-center shadow-lg translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out"
                  title="Tambah ke Keranjang"
                >
                  <ShoppingBag className="w-4 h-4" />
@@ -83,15 +77,15 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          {/* Informasi Produk */}
-          <div className="p-5 text-center">
-            <p className="text-xs text-primary font-bold tracking-widest uppercase mb-1">
+          {/* Informasi Produk: Padding & Font lebih kecil di HP */}
+          <div className="p-3 md:p-5 text-center">
+            <p className="text-[10px] md:text-xs text-primary font-bold tracking-widest uppercase mb-1">
               {product.category || 'Aksesoris'}
             </p>
-            <h3 className="text-lg font-lora text-stone-800 font-medium mb-2 group-hover:text-primary transition-colors line-clamp-1">
+            <h3 className="text-sm md:text-lg font-lora text-stone-800 font-medium mb-1 md:mb-2 group-hover:text-primary transition-colors line-clamp-1">
               {product.name}
             </h3>
-            <p className="text-stone-600 font-semibold">
+            <p className="text-xs md:text-base text-stone-600 font-semibold">
               Rp {product.price.toLocaleString('id-ID')}
             </p>
           </div>

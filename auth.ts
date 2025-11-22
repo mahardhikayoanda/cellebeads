@@ -2,15 +2,16 @@
 import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 
-// Inisialisasi NextAuth dengan config Anda
 export const { 
-    handlers: { GET, POST }, // Ekspor handler API
-    auth,                   // Ekspor fungsi helper 'auth'
-    signIn,                 // Ekspor 'signIn'
-    signOut,                // Ekspor 'signOut'
+    handlers: { GET, POST }, 
+    auth,                   
+    signIn,                 
+    signOut,                
 } = NextAuth({
   ...authConfig,
   session: {
-    strategy: "jwt", // Pastikan kita menggunakan JWT
+    strategy: "jwt", 
   },
+  // Opsi ini WAJIB ada untuk login via VS Code / Proxy
+  trustHost: true, 
 });
