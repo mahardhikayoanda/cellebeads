@@ -6,8 +6,8 @@ import { useCart, ICartItem } from '@/context/CartContext';
 import { IProduct } from '@/app/admin/products/actions'; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, CreditCard } from 'lucide-react'; // Import ikon CreditCard
-import { useRouter } from 'next/navigation'; // Import router untuk redirect
+import { ShoppingCart, Zap } from 'lucide-react'; // Ganti CreditCard dengan Zap
+import { useRouter } from 'next/navigation'; 
 
 interface AddToCartProps {
   product: IProduct;
@@ -18,7 +18,6 @@ export default function AddToCartClient({ product }: AddToCartProps) {
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
 
-  // Helper untuk membuat objek item
   const createItem = (): ICartItem => {
     const mainImage = product.images && product.images.length > 0 ? product.images[0] : '/placeholder-banner.jpg';
     return {
@@ -37,57 +36,56 @@ export default function AddToCartClient({ product }: AddToCartProps) {
   };
 
   const handleBuyNow = () => {
-    // 1. Masukkan ke keranjang
     addToCart(createItem());
-    // 2. Langsung arahkan ke halaman checkout
     router.push('/checkout');
   };
 
   if (product.stock === 0) {
     return (
-      <Button disabled className="w-full bg-gray-300 text-gray-500 cursor-not-allowed">
+      <Button disabled className="w-full h-12 bg-stone-200 text-stone-500 cursor-not-allowed rounded-xl font-bold">
         Stok Habis
       </Button>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Input Jumlah */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-stone-700">Jumlah:</span>
+    <div className="flex flex-col gap-5">
+      {/* Input Jumlah dengan Style Baru */}
+      <div className="flex items-center gap-4 bg-stone-50 p-3 rounded-xl w-fit border border-stone-100">
+        <span className="text-sm font-bold text-stone-600 uppercase tracking-wide">Jumlah</span>
+        <div className="h-8 w-[1px] bg-stone-200"></div>
         <Input
           type="number"
           value={quantity}
           onChange={(e) => setQuantity(Number(e.target.value))}
           min="1"
           max={product.stock} 
-          className="w-20 text-center h-10" 
+          className="w-16 text-center h-8 font-bold text-lg border-none bg-transparent focus-visible:ring-0 p-0" 
         />
-        <span className="text-xs text-stone-500">Tersedia: {product.stock}</span>
+        <span className="text-xs font-medium text-stone-400">/ {product.stock}</span>
       </div>
 
       {/* Grup Tombol Aksi */}
       <div className="flex gap-3">
-        {/* Tombol Keranjang (Outline) */}
+        {/* Tombol Keranjang (Pink Outline) */}
         <Button
           size="lg"
           variant="outline"
           onClick={handleAddToCart}
-          className="flex-1 border-rose-500 text-rose-500 hover:bg-rose-50"
+          className="flex-1 h-12 border-2 border-primary text-primary hover:bg-pink-50 font-bold rounded-xl"
         >
           <ShoppingCart className="h-5 w-5 mr-2" />
-          + Keranjang
+          Keranjang
         </Button>
 
-        {/* Tombol Beli Sekarang (Solid) */}
+        {/* Tombol Beli Sekarang (Teal Solid) */}
         <Button
           size="lg"
           onClick={handleBuyNow}
-          className="flex-1 bg-rose-600 hover:bg-rose-700 text-white"
+          className="flex-1 h-12 bg-accent hover:bg-teal-600 text-white font-bold rounded-xl shadow-lg shadow-teal-200 transition-transform hover:-translate-y-0.5"
         >
-          <CreditCard className="h-5 w-5 mr-2" />
-          Beli Sekarang
+          <Zap className="h-5 w-5 mr-2" />
+          Beli Langsung
         </Button>
       </div>
     </div>

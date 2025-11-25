@@ -20,14 +20,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // Tambahkan suppressHydrationWarning untuk mencegah error perbedaan atribut
     <html lang="id" className={`${lato.variable} ${lora.variable}`} suppressHydrationWarning>
-      {/* PERBAIKAN:
-         1. Ganti 'bg-background' dengan 'bg-[#FDFBF7]' (Warna Cream manual).
-         2. Ganti 'text-foreground' dengan 'text-stone-900' (Warna Abu Gelap manual).
-         Ini akan "mengunci" tampilan menjadi tema terang/cream, mengabaikan mode gelap HP/Ekstensi.
-      */}
-      <body className={`font-sans min-h-screen flex flex-col bg-[#FDFBF7] text-stone-900`}>
+      {/* Menggunakan bg-background dari CSS Variable agar warnanya Soft Rose Mist */}
+      <body className={`font-sans min-h-screen flex flex-col bg-background text-foreground`}>
         <Providers>
           <div className="flex flex-col min-h-screen">
             <Navbar />

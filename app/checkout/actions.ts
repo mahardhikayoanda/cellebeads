@@ -4,14 +4,9 @@
 import dbConnect from '@/lib/dbConnect';
 import Order from '@/models/Order';
 import { revalidatePath } from 'next/cache';
-
-// --- PERUBAHAN DI SINI ---
-// 1. Hapus import 'authOptions' dan 'getServerSession'
-// 2. Impor 'auth' dari file @/auth.ts baru Anda
 import { auth } from '@/auth';
-// -------------------------
 
-// Tipe data untuk item di keranjang (tetap sama)
+// Tipe data untuk item di keranjang
 interface ICartItem {
   _id: string;
   name: string;
@@ -20,14 +15,11 @@ interface ICartItem {
 }
 
 export async function createOrder(formData: FormData, cartItems: ICartItem[]) {
-  // --- PERUBAHAN DI SINI ---
-  // 3. Gunakan 'auth()' untuk mendapatkan sesi
+  // 1. Cek sesi login
   const session = await auth();
-  // -------------------------
-
-  // 4. Akses user.id dari sesi (sudah benar)
+  
   if (!session || session.user.role !== 'customer') {
-    return { success: false, message: 'Akses ditolak' };
+    return { success: false, message: 'Akses ditolak. Silakan login sebagai pelanggan.' };
   }
   
   await dbConnect();
@@ -35,6 +27,7 @@ export async function createOrder(formData: FormData, cartItems: ICartItem[]) {
   try {
     const { name, address, phone, paymentMethod } = Object.fromEntries(formData);
     
+    // Hitung total harga di server untuk keamanan
     const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
 
     const orderItems = cartItems.map(item => ({
@@ -44,8 +37,9 @@ export async function createOrder(formData: FormData, cartItems: ICartItem[]) {
       price: item.price,
     }));
     
+    // 2. Simpan Order ke Database
     const order = new Order({
-      user: session.user.id, // Ambil id dari sesi
+      user: session.user.id, 
       items: orderItems,
       totalPrice,
       shippingDetails: {
@@ -59,28 +53,39 @@ export async function createOrder(formData: FormData, cartItems: ICartItem[]) {
 
     await order.save();
 
-    // ... (Logika WhatsApp tetap sama) ...
-    let waMessage = `Halo Admin, saya mau pesan:\n\n`;
-    cartItems.forEach(item => {
-      waMessage += `* ${item.name} (x${item.qty}) - Rp ${item.price.toLocaleString('id-ID')}\n`;
+    // 3. Format Pesan WhatsApp (UPGRADE: Lebih Rapi & Profesional)
+    const separator = "--------------------------------";
+    let waMessage = `Halo Admin Cellebeads! 👋\nSaya ingin memesan produk berikut:\n\n`;
+    
+    cartItems.forEach((item, index) => {
+      waMessage += `${index + 1}. *${item.name}*\n`;
+      waMessage += `   Qty: ${item.qty} x Rp ${item.price.toLocaleString('id-ID')}\n`;
+      waMessage += `   Subtotal: Rp ${(item.price * item.qty).toLocaleString('id-ID')}\n\n`;
     });
-    waMessage += `\n*Total Harga: Rp ${totalPrice.toLocaleString('id-ID')}*\n`;
-    waMessage += `\n*Data Pemesan:*\n`;
-    waMessage += `Nama: ${name}\n`;
-    waMessage += `Alamat: ${address}\n`;
-    waMessage += `No. HP: ${phone}\n`;
-    waMessage += `Pembayaran: ${paymentMethod}\n`;
-    waMessage += `\nTerima kasih.`;
+
+    waMessage += `${separator}\n`;
+    waMessage += `*TOTAL BELANJA: Rp ${totalPrice.toLocaleString('id-ID')}*\n`;
+    waMessage += `${separator}\n\n`;
+    
+    waMessage += `📋 *DATA PENGIRIMAN*\n`;
+    waMessage += `👤 Nama: ${name}\n`;
+    waMessage += `🏠 Alamat: ${address}\n`;
+    waMessage += `📞 No. HP: ${phone}\n`;
+    waMessage += `💳 Pembayaran: ${paymentMethod === 'transfer' ? 'Transfer Bank' : 'COD (Bayar di Tempat)'}\n\n`;
+    
+    waMessage += `Mohon segera diproses ya, Terima kasih! ✨`;
 
     const adminNumber = process.env.ADMIN_WA_NUMBER;
     const waUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(waMessage)}`;
 
+    // 4. Refresh halaman terkait
     revalidatePath('/dashboard/my-orders');
     revalidatePath('/admin/orders'); 
 
     return { success: true, waUrl: waUrl, message: 'Pesanan berhasil dibuat.' };
 
   } catch (error: any) {
+    console.error("Checkout Error:", error);
     return { success: false, message: error.message || 'Gagal membuat pesanan' };
   }
 }

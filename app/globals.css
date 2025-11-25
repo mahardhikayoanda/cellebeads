@@ -1,69 +1,74 @@
 @import "tailwindcss";
 
 :root {
-  /* Palet Warna: Soft Luxury (Cream, Dusty Rose, Gold, Charcoal) */
+  /* --- TEMA: TROPICAL BERRY (Lively & Fresh) --- */
   
-  /* Background: Warm White / Cream lembut, bukan putih murni yang menyilaukan */
-  --background: 30 20% 99%; 
-  --foreground: 340 5% 15%; /* Charcoal (Hitam kemerahan) */
+  /* BACKGROUND: Soft Rose Mist (Bukan Putih Murni!) */
+  /* Ini memberikan nuansa hangat agar warna pastel lain terlihat jelas */
+  --background: 330 35% 97%; 
+  
+  /* TEKS: Deep Plum (Ungu Gelap, lebih manis daripada hitam) */
+  --foreground: 270 50% 20%; 
 
+  /* CARD: Putih Bersih (Agar kontras dengan background web) */
   --card: 0 0% 100%;
-  --card-foreground: 340 5% 15%;
+  --card-foreground: 270 50% 20%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 340 5% 15%;
+  --popover-foreground: 270 50% 20%;
 
-  /* Primary: Dusty Rose (Elegan, tidak norak) */
-  --primary: 340 40% 60%; 
-  --primary-foreground: 0 0% 100%;
+  /* PRIMARY: Vibrant Raspberry (Pink Fanta yang Segar) */
+  --primary: 336 85% 55%; 
+  --primary-foreground: 0 0% 100%; 
 
-  /* Secondary: Gold / Sand (Untuk aksen mewah) */
-  --secondary: 35 40% 90%;
-  --secondary-foreground: 35 40% 30%;
+  /* SECONDARY: Lavender Mist (Ungu Muda untuk variasi) */
+  --secondary: 260 60% 96%;
+  --secondary-foreground: 270 60% 40%;
 
-  --muted: 30 10% 96%;
-  --muted-foreground: 340 5% 45%;
+  /* MUTED: Abu Ungu (Pemisah yang tidak kaku) */
+  --muted: 270 20% 90%;
+  --muted-foreground: 270 10% 50%;
 
-  /* Accent: Rose Gold lembut */
-  --accent: 340 30% 96%;
-  --accent-foreground: 340 40% 50%;
+  /* ACCENT: Fresh Teal (Hijau Tosca untuk kesegaran mata) */
+  --accent: 170 70% 40%;
+  --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
+  /* DESTRUCTIVE: Strawberry Red */
+  --destructive: 350 80% 60%;
+  --destructive-foreground: 0 0% 100%;
 
-  --border: 340 10% 90%;
-  --input: 340 10% 90%;
+  --border: 336 20% 85%; /* Border sedikit lebih terlihat */
+  --input: 336 20% 85%;
   
-  /* Ring: Gold lembut saat fokus */
-  --ring: 340 40% 70%; 
+  /* RING: Fokus warna Raspberry */
+  --ring: 336 85% 55%; 
 
-  --radius: 0.75rem; /* Sudut sedikit lebih bulat */
+  --radius: 1rem; 
 }
 
 .dark {
-  /* Mode Gelap (Deep Luxury) */
-  --background: 340 10% 5%;
-  --foreground: 30 10% 90%;
-  --card: 340 10% 8%;
-  --card-foreground: 30 10% 90%;
-  --popover: 340 10% 8%;
-  --popover-foreground: 30 10% 90%;
-  --primary: 340 40% 60%;
+  /* Mode Gelap tetap bernuansa Pink-Ungu */
+  --background: 330 20% 10%;
+  --foreground: 330 10% 95%;
+  --card: 330 20% 15%;
+  --card-foreground: 330 10% 95%;
+  --popover: 330 20% 15%;
+  --popover-foreground: 330 10% 95%;
+  --primary: 336 85% 60%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 340 10% 15%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 340 10% 15%;
-  --muted-foreground: 340 5% 65%;
-  --accent: 340 10% 15%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 340 10% 15%;
-  --input: 340 10% 15%;
-  --ring: 340 40% 60%;
+  --secondary: 260 30% 20%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 270 20% 20%;
+  --muted-foreground: 270 10% 60%;
+  --accent: 170 70% 45%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 350 80% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 336 20% 20%;
+  --input: 336 20% 20%;
+  --ring: 336 85% 60%;
 }
 
-/* Utilitas Tambahan untuk Scrollbar yang cantik */
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
       display: none;
