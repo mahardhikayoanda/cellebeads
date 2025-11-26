@@ -1,14 +1,16 @@
 // File: app/products/[id]/ProductDetailClientWrapper.tsx
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion'; // 1. Import type Variants
 import { IProduct } from '@/app/admin/products/actions';
 import ProductGallery from '@/components/ProductGallery';
 import { Badge } from '@/components/ui/badge';
 import AddToCartClient from './AddToCartClient';
 
+// 2. Tambahkan tipe : Variants pada setiap objek varian
+
 // Varian untuk galeri (muncul dari kiri)
-const galleryVariant = {
+const galleryVariant: Variants = {
   hidden: { opacity: 0, x: -50 },
   visible: { 
     opacity: 1, 
@@ -18,7 +20,7 @@ const galleryVariant = {
 };
 
 // Varian untuk kontainer info (muncul dari kanan + stagger)
-const infoContainerVariant = {
+const infoContainerVariant: Variants = {
   hidden: { opacity: 0, x: 50 },
   visible: {
     opacity: 1,
@@ -33,7 +35,7 @@ const infoContainerVariant = {
 };
 
 // Varian untuk setiap anak di kontainer info
-const infoChildVariant = {
+const infoChildVariant: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 }
 };

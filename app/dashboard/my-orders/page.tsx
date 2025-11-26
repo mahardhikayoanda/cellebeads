@@ -1,19 +1,19 @@
 // File: app/dashboard/my-orders/page.tsx
-import { getMyOrders } from './actions';
-import { IOrder } from '@/app/admin/orders/actions'; 
+import { getMyOrders, IOrderWithReview } from './actions'; // Pastikan import IOrderWithReview
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; 
-import MyOrdersTable from './MyOrdersTable'; // <-- 1. Import tabel Client Component
+import MyOrdersTable from './MyOrdersTable'; 
 
 export default async function MyOrdersPage() {
-  const orders: IOrder[] = await getMyOrders();
+  // Panggil getMyOrders yang mengembalikan IOrderWithReview[]
+  const orders: IOrderWithReview[] = await getMyOrders();
 
   return (
-    <Card>
+    <Card className="border-none shadow-sm">
       <CardHeader>
-        <CardTitle className="text-2xl font-lora">Pesanan Saya</CardTitle>
+        <CardTitle className="text-2xl font-lora font-bold text-stone-800">Pesanan Saya</CardTitle>
       </CardHeader>
       <CardContent>
-        {/* 2. Gunakan komponen tabel baru */}
+        {/* Kirim data orders yang sudah bertipe IOrderWithReview[] */}
         <MyOrdersTable orders={orders} />
       </CardContent>
     </Card>

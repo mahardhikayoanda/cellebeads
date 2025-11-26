@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "target": "ES2017",
     "lib": [
       "dom",
@@ -23,14 +22,12 @@
         "name": "next"
       }
     ],
-    // --- PERBAIKAN DI SINI ---
-    "baseUrl": ".", // <--- TAMBAHKAN BARIS INI
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
       ]
     }
-    // -------------------------
   },
   "include": [
     "next-env.d.ts",
