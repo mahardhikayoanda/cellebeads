@@ -6,6 +6,11 @@ import { getProducts } from '@/app/admin/products/actions';
 import ProductGrid from '@/app/products/ProductGrid'; 
 import { Search, ShieldCheck, Truck, Gem, Watch, Smartphone, Key, CircleDashed, Sparkles, Heart } from 'lucide-react';
 
+// --- TAMBAHAN: Force Dynamic Rendering ---
+// Ini mencegah Next.js mencoba mengambil data database saat build time
+export const dynamic = 'force-dynamic';
+// ---------------------------------------
+
 export default async function HomePage() {
   const latestProducts = await getProducts();
   const productsToShow = latestProducts.slice(0, 8); 
