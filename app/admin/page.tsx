@@ -4,8 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from 'next/link';
 import { 
   DollarSign, ShoppingBag, Package, Users, 
-  ChevronRight, TrendingUp, BarChart // <-- SAYA SUDAH TAMBAHKAN INI
+  ChevronRight, TrendingUp, BarChart 
 } from 'lucide-react';
+
+// --- TAMBAHAN: Force Dynamic Rendering ---
+export const dynamic = 'force-dynamic';
+// ---------------------------------------
 
 export default async function AdminDashboardPage() {
   const stats = await getAdminStats();

@@ -1,7 +1,11 @@
 // File: app/admin/reviews/page.tsx
 import { getReviews, IReviewPopulated } from './actions';
-import ReviewTabs from './ReviewTabs'; // <-- Import komponen baru
+import ReviewTabs from './ReviewTabs'; 
 import { MessageSquareQuote } from 'lucide-react';
+
+// --- TAMBAHAN: Force Dynamic Rendering ---
+export const dynamic = 'force-dynamic';
+// ---------------------------------------
 
 export default async function AdminReviewsPage() {
   // Ambil semua ulasan dari server

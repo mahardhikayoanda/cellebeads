@@ -1,7 +1,11 @@
 // File: app/admin/products/page.tsx
 import { getProducts, IProduct } from './actions';
 import ProductForm from './ProductForm';
-import ProductListTabs from './ProductListTabs'; // <-- Import komponen baru
+import ProductListTabs from './ProductListTabs'; 
+
+// --- TAMBAHAN: Force Dynamic Rendering ---
+export const dynamic = 'force-dynamic';
+// ---------------------------------------
 
 export default async function AdminProductsPage() {
   // Ambil semua produk (nanti difilter di client)
