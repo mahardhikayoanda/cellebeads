@@ -1,4 +1,4 @@
-// File: proxy.ts (atau middleware.ts)
+// File: proxy.ts
 import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 
@@ -13,11 +13,15 @@ export default auth((req) => {
   const isOnCheckout = nextUrl.pathname.startsWith('/checkout');
   const isOnFinishProfile = nextUrl.pathname.startsWith('/finish-profile');
   const isOnLogin = nextUrl.pathname.startsWith('/login');
-  const isOnCart = nextUrl.pathname.startsWith('/cart'); // <-- 1. Definisikan Rute Cart
-  
-  // Rute Customer Baru
+  const isOnCart = nextUrl.pathname.startsWith('/cart');
   const isOnMyOrders = nextUrl.pathname.startsWith('/dashboard/my-orders');
   const isOnProfile = nextUrl.pathname.startsWith('/profile');
+  const isOnHome = nextUrl.pathname === '/';
+
+  // --- REDIRECT ADMIN DARI HOME KE DASHBOARD ---
+  if (isOnHome && isLoggedIn && user?.role === 'admin') {
+    return Response.redirect(new URL('/admin', nextUrl));
+  }
 
   // 1. Proteksi Halaman Admin
   if (isOnAdmin) {
@@ -31,35 +35,38 @@ export default auth((req) => {
         return Response.redirect(new URL('/login', nextUrl));
     }
     if (isLoggedIn && user?.role !== 'customer') {
-       return Response.redirect(new URL('/admin/products', nextUrl));
+       return Response.redirect(new URL('/admin', nextUrl)); // Admin diarahkan ke dashboard
     }
   }
 
-  // --- 3. BLOKIR ADMIN DARI CART (LOGIKA BARU) ---
-  // Jika Admin mencoba akses /cart, lempar ke dashboard admin
+  // 3. Blokir Admin dari Cart
   if (isOnCart && isLoggedIn && user?.role === 'admin') {
-     return Response.redirect(new URL('/admin/products', nextUrl));
+     return Response.redirect(new URL('/admin', nextUrl));
   }
-  // -----------------------------------------------
 
-  // 4. ALUR WAJIB ONBOARDING
+  // 4. Alur Wajib Onboarding (Khusus Customer)
   if (isLoggedIn && user?.role === 'customer' && !user?.profileComplete) {
     if (isOnFinishProfile) return; 
     return Response.redirect(new URL('/finish-profile', nextUrl));
   }
   
-  // 5. JANGAN BOLEHKAN USER LENGKAP MENGAKSES /finish-profile
+  // 5. Jangan Bolehkan User Lengkap Akses /finish-profile
   if (isLoggedIn && user?.profileComplete && isOnFinishProfile) {
+    if (user?.role === 'admin') {
+      return Response.redirect(new URL('/admin', nextUrl));
+    }
     return Response.redirect(new URL('/', nextUrl));
   }
 
-  // 6. JANGAN BOLEHKAN USER LOGIN MENGAKSES /login
+  // 6. Jangan Bolehkan User Login Akses /login
   if (isLoggedIn && isOnLogin) {
-     return Response.redirect(new URL('/', nextUrl));
+    if (user?.role === 'admin') {
+      return Response.redirect(new URL('/admin', nextUrl));
+    }
+    return Response.redirect(new URL('/', nextUrl));
   }
 });
 
-// Perbarui matcher
 export const config = {
   matcher: [
       '/admin/:path*', 
@@ -70,6 +77,6 @@ export const config = {
       '/products/:path*', 
       '/finish-profile',
       '/login', 
-      '/', 
+      '/', // Tambahkan home untuk redirect admin
   ],
 };

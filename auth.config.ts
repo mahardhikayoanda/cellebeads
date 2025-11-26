@@ -11,11 +11,9 @@ export const authConfig = {
     error: '/login', 
   },
   providers: [
-    // --- GOOGLE PROVIDER (DIPERBAIKI) ---
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      // Tambahan ini memaksa Google menampilkan pilihan akun ("Consent Screen")
       authorization: {
         params: {
           prompt: "consent",
@@ -24,9 +22,6 @@ export const authConfig = {
         }
       }
     }),
-    // ------------------------------------
-
-    // Provider Credentials (Manual)
     Credentials({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -34,7 +29,6 @@ export const authConfig = {
         await dbConnect();
         const user = await User.findOne({ email: credentials.email });
 
-        // Hanya izinkan login jika provider-nya 'credentials'
         if (user && user.authProvider === 'credentials' && (await user.matchPassword(credentials.password))) {
           return { 
               id: user._id.toString(), 
@@ -56,14 +50,12 @@ export const authConfig = {
 
         if (account?.provider === 'google') {
           if (existingUser) {
-            // Jika user sudah ada, update provider ke google
             existingUser.authProvider = 'google';
             existingUser.password = undefined; 
             await existingUser.save();
             return true; 
           }
 
-          // Buat user baru dari Google
           const isAdmin = user.email === process.env.ADMIN_EMAIL;
           await User.create({
             name: user.name, 
@@ -76,7 +68,6 @@ export const authConfig = {
           return true; 
         }
         
-        // Cek login manual
         if (account?.provider === 'credentials') {
             if (existingUser && existingUser.authProvider !== 'credentials') {
                return false; 
@@ -95,7 +86,6 @@ export const authConfig = {
     async jwt({ token, user, trigger, session }) {
       await dbConnect();
       
-      // Update token dengan data terbaru dari DB
       if (token.email) {
         const dbUser = await User.findOne({ email: token.email });
         if (dbUser) {
