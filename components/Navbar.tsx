@@ -4,23 +4,106 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, LogOut, Menu, Package, LayoutDashboard, Search } from 'lucide-react'; 
+import { ShoppingCart, User, LogOut, Menu, Package, LayoutDashboard, Search, Settings, UserCog } from 'lucide-react'; 
 import { useCart } from '@/context/CartContext';
-import { motion } from 'framer-motion'; // Tambah animasi
+import { motion } from 'framer-motion'; 
+import { usePathname } from 'next/navigation'; 
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet" 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { cn } from '@/lib/utils';
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { getTotalItems } = useCart();
+  const pathname = usePathname(); 
   
   const totalItems = getTotalItems ? getTotalItems() : 0;
   const userRole = (session?.user as any)?.role;
   const profileComplete = (session?.user as any)?.profileComplete;
+  const userName = session?.user?.name || "Pengguna";
 
+  // Helper untuk inisial nama (Misal: Mahardhika Yoanda -> MY)
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
+  // --- 1. LOGIKA: Sembunyikan Total di Landing Page (Tamu) ---
+  if (pathname === '/' && status === 'unauthenticated') {
+    return null;
+  }
+
+  // --- 2. LOGIKA KHUSUS ADMIN: Hanya Tampilkan Profil ---
+  const isAdminPage = pathname?.startsWith('/admin');
+
+  if (isAdminPage) {
+    return (
+      <div className="fixed top-0 right-0 z-50 p-4 flex justify-end pointer-events-none">
+        {/* Container Profil agar bisa diklik (pointer-events-auto) */}
+        <div className="pointer-events-auto bg-white/80 backdrop-blur-md p-1 rounded-full shadow-sm border border-stone-200">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-pink-50">
+                <div className="w-8 h-8 bg-stone-800 rounded-full flex items-center justify-center text-white font-bold shadow-inner text-xs">
+                    {getInitials(userName)}
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 rounded-xl p-2">
+              <DropdownMenuLabel className="flex flex-col gap-1">
+                {/* Nama Admin Dinamis */}
+                <p className="font-bold text-base text-stone-800 truncate">{userName}</p>
+                <p className="text-xs font-normal text-stone-500 truncate">{session?.user?.email}</p>
+                <span className="text-[10px] font-bold text-primary bg-pink-50 px-2 py-0.5 rounded-full w-fit mt-1 border border-pink-100">
+                  Administrator
+                </span>
+              </DropdownMenuLabel>
+              
+              <DropdownMenuSeparator className="my-2 bg-stone-100" />
+              
+              {/* Menu Profil Admin (Pengganti Lihat Toko) */}
+              <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-stone-100 p-2">
+                <Link href="/admin/profile" className="flex items-center font-medium text-stone-700">
+                  <div className="p-1.5 bg-stone-100 rounded-md mr-3 text-stone-600">
+                    <UserCog size={16} />
+                  </div>
+                  Profil Admin
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator className="my-2 bg-stone-100" />
+              
+              <DropdownMenuItem 
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="cursor-pointer rounded-lg focus:bg-rose-50 p-2 text-rose-600 focus:text-rose-700"
+              >
+                <div className="p-1.5 bg-rose-100 rounded-md mr-3 text-rose-500">
+                   <LogOut size={16} />
+                </div>
+                <span className="font-bold">Keluar</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    );
+  }
+
+  // --- 3. TAMPILAN STANDAR (CUSTOMER) ---
   return (
-    // Ganti background solid dengan backdrop-blur (Glassmorphism)
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -29,15 +112,15 @@ export default function Navbar() {
     >
       <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
         
-        {/* 1. Mobile Menu */}
+        {/* Mobile Menu (Kiri) */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="hover:bg-pink-50 text-stone-600">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-white/95 backdrop-blur-xl border-r-primary/20">
+            <SheetContent side="left" className="bg-white/95 backdrop-blur-xl border-r-pink-100">
               <SheetHeader>
                 <SheetTitle className="text-left font-lora text-3xl font-bold text-primary mb-6 italic">Cellebeads</SheetTitle>
               </SheetHeader>
@@ -48,54 +131,59 @@ export default function Navbar() {
                 
                 <div className="h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent my-2" />
 
-                {session && userRole === 'customer' && profileComplete && (
+                {session ? (
                    <>
-                     <Link href="/dashboard/my-orders" className="text-lg font-medium text-stone-600 hover:text-primary">Pesanan Saya</Link>
-                     <Link href="/profile" className="text-lg font-medium text-stone-600 hover:text-primary">Profil Saya</Link>
+                      {userRole === 'customer' && (
+                        <>
+                          <Link href="/dashboard/my-orders" className="text-lg font-medium text-stone-600 hover:text-primary">Pesanan Saya</Link>
+                          <Link href="/profile" className="text-lg font-medium text-stone-600 hover:text-primary">Profil Saya</Link>
+                        </>
+                      )}
+                      <button onClick={() => signOut({ callbackUrl: '/' })} className="text-lg font-medium text-rose-500 hover:text-rose-700 text-left mt-4">
+                        Keluar
+                      </button>
                    </>
-                )}
-                {session && userRole === 'admin' && (
-                   <Link href="/admin/products" className="text-lg font-medium text-primary">Admin Panel</Link>
+                ) : (
+                   <Link href="/login" className="text-lg font-bold text-primary">Masuk Sekarang</Link>
                 )}
               </div>
             </SheetContent>
           </Sheet>
         </div>
 
-        {/* 2. Logo (Tengah di Mobile, Kiri di Desktop) */}
-        <Link href="/" className="text-3xl font-lora font-bold text-primary tracking-tight hover:opacity-80 transition-opacity">
+        {/* Logo */}
+        <Link href="/" className="text-2xl md:text-3xl font-lora font-bold text-primary tracking-tight hover:opacity-80 transition-opacity flex items-center gap-2">
           Cellebeads<span className="text-yellow-500">.</span>
         </Link>
 
-        {/* 3. Menu Desktop (Centered) */}
-        <div className="hidden md:flex items-center space-x-8 bg-stone-100/50 px-8 py-2 rounded-full border border-white/50">
-          <Link href="/" className="text-sm font-medium text-stone-600 hover:text-primary uppercase tracking-widest transition-colors">
-            Beranda
-          </Link>
-          <Link href="/products" className="text-sm font-medium text-stone-600 hover:text-primary uppercase tracking-widest transition-colors">
-            Koleksi
-          </Link>
-          <Link href="/about" className="text-sm font-medium text-stone-600 hover:text-primary uppercase tracking-widest transition-colors">
-            Tentang
-          </Link>
+        {/* Menu Desktop */}
+        <div className="hidden md:flex items-center space-x-1 bg-stone-100/50 p-1 rounded-full border border-white/50 backdrop-blur-sm">
+          {['Beranda', 'Koleksi', 'Tentang'].map((item) => {
+            const path = item === 'Beranda' ? '/' : (item === 'Koleksi' ? '/products' : '/about');
+            return (
+              <Button key={item} asChild variant="ghost" size="sm" className="rounded-full px-6 text-stone-600 hover:text-primary hover:bg-white transition-all">
+                <Link href={path}>{item}</Link>
+              </Button>
+            )
+          })}
         </div>
 
-        {/* 4. Ikon Kanan */}
-        <div className="flex items-center space-x-2">
+        {/* Ikon Kanan */}
+        <div className="flex items-center gap-1 md:gap-2">
           
-          {/* Search Icon (Hiasan/Future Feature) */}
-          <Button variant="ghost" size="icon" className="hidden md:flex text-stone-500 hover:text-primary hover:bg-primary/5">
+          <Button variant="ghost" size="icon" className="hidden md:flex text-stone-500 hover:text-primary hover:bg-pink-50 rounded-full">
             <Search className="h-5 w-5" />
           </Button>
 
+          {/* Cart (Hanya untuk Customer / Tamu) */}
           {(!session || (profileComplete && userRole !== 'admin')) && (
             <Link href="/cart">
-              <Button variant="ghost" size="icon" className="relative text-stone-500 hover:text-primary hover:bg-primary/5 transition-all">
+              <Button variant="ghost" size="icon" className="relative text-stone-500 hover:text-primary hover:bg-pink-50 rounded-full transition-all">
                 <ShoppingCart className="h-5 w-5" />
                 {totalItems > 0 && (
                   <motion.span 
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-md"
+                    className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-md border border-white"
                   >
                     {totalItems}
                   </motion.span>
@@ -104,50 +192,58 @@ export default function Navbar() {
             </Link>
           )}
 
+          {/* Dropdown Profil Customer */}
           {session ? (
-            <div className="flex items-center gap-1 pl-2 border-l border-stone-200 ml-2">
-              {profileComplete && (
-                <>
-                  {userRole === 'admin' ? (
-                    <Link href="/admin/products">
-                      <Button variant="ghost" size="icon" title="Admin Panel" className="text-primary hover:bg-primary/10">
-                        <LayoutDashboard className="h-5 w-5" />
-                      </Button>
-                    </Link>
-                  ) : (
-                    <>
-                      <Link href="/dashboard/my-orders">
-                        <Button variant="ghost" size="icon" title="Pesanan Saya" className="hover:text-primary">
-                          <Package className="h-5 w-5" />
-                        </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full text-stone-500 hover:text-primary hover:bg-pink-50 border border-transparent hover:border-pink-100">
+                  <div className="w-8 h-8 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center text-primary font-bold shadow-inner">
+                     {getInitials(userName)}
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-pink-100 shadow-xl bg-white/95 backdrop-blur-lg">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-bold leading-none text-stone-800">{userName}</p>
+                    <p className="text-xs leading-none text-stone-500 truncate">{session.user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-pink-50" />
+
+                {userRole === 'customer' && (
+                  <>
+                    <DropdownMenuItem asChild className="rounded-xl cursor-pointer focus:bg-pink-50 focus:text-primary">
+                      <Link href="/profile" className="flex items-center">
+                        <User className="mr-2 h-4 w-4" /> Profil Saya
                       </Link>
-                      <Link href="/profile">
-                        <Button variant="ghost" size="icon" title="Profil Saya" className="hover:text-primary">
-                          <User className="h-5 w-5" />
-                        </Button>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-xl cursor-pointer focus:bg-pink-50 focus:text-primary">
+                      <Link href="/dashboard/my-orders" className="flex items-center">
+                        <Package className="mr-2 h-4 w-4" /> Pesanan Saya
                       </Link>
-                    </>
-                  )}
-                </>
-              )}
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => signOut({ callbackUrl: '/' })}
-                title="Logout"
-                className="text-stone-400 hover:text-red-500 hover:bg-red-50"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                <DropdownMenuSeparator className="bg-pink-50" />
+                
+                <DropdownMenuItem 
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="text-rose-500 focus:text-rose-600 focus:bg-rose-50 rounded-xl cursor-pointer font-medium"
+                >
+                  <LogOut className="mr-2 h-4 w-4" /> Keluar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <Link href="/login">
-              <Button variant="default" size="sm" className="rounded-full px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
-                Masuk
-              </Button>
-            </Link>
+            <Button asChild variant="ghost" size="icon" className="rounded-full text-stone-500 hover:text-primary hover:bg-pink-50 transition-all" title="Masuk Akun">
+               <Link href="/login">
+                 <User className="h-5 w-5" />
+               </Link>
+            </Button>
           )}
+          
         </div>
       </div>
     </motion.nav>

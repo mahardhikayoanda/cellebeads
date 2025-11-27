@@ -2,20 +2,24 @@
 import type { NextConfig } from "next";
 
 const config: NextConfig = {
-  
-  // --- TAMBAHKAN BLOK INI ---
-  // Ini memberi tahu Next.js bahwa gambar dari Vercel Blob aman
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'w302ieewdugquuzl.public.blob.vercel-storage.com', // <-- Diambil dari log error Anda
+        hostname: 'w302ieewdugquuzl.public.blob.vercel-storage.com', // Izin Vercel Blob
         port: '',
-        pathname: '/**', // Izinkan semua gambar dari host ini
+        pathname: '/**',
       },
+      // --- TAMBAHKAN INI ---
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com', // Izin DiceBear Avatar
+        port: '',
+        pathname: '/**', 
+      },
+      // --------------------
     ],
   },
-  // -------------------------
 };
 
 export default config;

@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                <span className="text-xs font-bold tracking-widest uppercase">Admin Panel</span>
             </div>
             <h2 className="text-2xl font-lora font-bold text-stone-800 tracking-tight">
-              Celle<span className="text-primary">beads.</span>
+              Celle<span className="text-primary">Beads.</span>
             </h2>
         </div>
         

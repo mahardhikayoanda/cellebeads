@@ -5,8 +5,6 @@ import bcrypt from 'bcryptjs';
 const UserSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  
-  // 1. Password dibuat opsional (tidak wajib)
   password: { type: String, required: false }, 
   
   role: {
@@ -15,20 +13,21 @@ const UserSchema = new Schema({
     default: 'customer',
   },
   
-  // --- TAMBAHAN BARU UNTUK BIO DATA ---
   phone: { type: String },
   gender: { type: String, enum: ['Pria', 'Wanita'] },
   
-  // Kolom penanda apakah user dari Google atau manual
+  // --- TAMBAHAN BARU: PROFIL LENGKAP ---
+  dateOfBirth: { type: Date },
+  bio: { type: String },
+  address: { type: String },
+  // -------------------------------------
+
   authProvider: { type: String, default: 'credentials' }, 
-  
-  // "KUNCI AJAIB": Penanda apakah profil sudah lengkap
   profileComplete: { type: Boolean, default: false } 
-  // ------------------------------------
 
 }, { timestamps: true });
 
-// Hash password HANYA JIKA password diubah (user manual)
+// Hash password HANYA JIKA password diubah
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password') || !this.password) {
     return next();
@@ -39,7 +38,7 @@ UserSchema.pre('save', async function(next) {
 });
 
 UserSchema.methods.matchPassword = async function(enteredPassword) {
-  if (!this.password) return false; // User Google tidak punya password
+  if (!this.password) return false; 
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
