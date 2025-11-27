@@ -26,7 +26,7 @@ const beadVariants = {
       duration: duration,
       repeat: Infinity,
       repeatType: "reverse" as const,
-      ease: "easeInOut" as const, // <--- PERBAIKAN DI SINI (tambahkan 'as const')
+      ease: "easeInOut" as const, 
     },
   }),
 };
@@ -40,12 +40,13 @@ const letterContainer = {
   }),
 };
 
+// PERBAIKAN: Tambahkan 'as const' pada tipe transisi agar TypeScript mengenali literal string 'spring'
 const letterChild = {
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: "spring" as const, // <--- TAMBAHKAN 'as const'
       damping: 12,
       stiffness: 200,
     },
@@ -54,7 +55,7 @@ const letterChild = {
     opacity: 0,
     y: 20,
     transition: {
-      type: "spring",
+      type: "spring" as const, // <--- TAMBAHKAN 'as const'
       damping: 12,
       stiffness: 200,
     },
