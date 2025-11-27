@@ -1,16 +1,17 @@
-// File: app/admin/dashboard/actions.ts
 'use server';
 
 import dbConnect from '@/lib/dbConnect';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 import User from '@/models/User';
+import Review from '@/models/Review'; // Tambahkan import model Review
 
 export interface AdminStats {
   totalRevenue: number;
   pendingOrdersCount: number;
   totalProducts: number;
   totalCustomers: number;
+  pendingReviewsCount: number; // <-- Field Baru
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -33,11 +34,22 @@ export async function getAdminStats(): Promise<AdminStats> {
     // 4. Hitung Total Pelanggan
     const totalCustomers = await User.countDocuments({ role: 'customer' });
 
+    // 5. Hitung Ulasan Belum Dibalas (LOGIKA BARU)
+    // Mencari review dimana adminReply tidak ada, null, atau string kosong
+    const pendingReviewsCount = await Review.countDocuments({
+        $or: [
+            { adminReply: { $exists: false } }, 
+            { adminReply: null }, 
+            { adminReply: "" }
+        ]
+    });
+
     return {
       totalRevenue,
       pendingOrdersCount,
       totalProducts,
-      totalCustomers
+      totalCustomers,
+      pendingReviewsCount 
     };
   } catch (error) {
     console.error("Gagal mengambil statistik admin:", error);
@@ -45,7 +57,8 @@ export async function getAdminStats(): Promise<AdminStats> {
       totalRevenue: 0,
       pendingOrdersCount: 0,
       totalProducts: 0,
-      totalCustomers: 0
+      totalCustomers: 0,
+      pendingReviewsCount: 0
     };
   }
 }

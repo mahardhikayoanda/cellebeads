@@ -1,6 +1,6 @@
 'use client'; 
 
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Import React Hooks
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; 
 import { motion, AnimatePresence } from 'framer-motion'; 
@@ -12,18 +12,53 @@ import {
 import { signOut } from 'next-auth/react';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { getAdminStats } from './dashboard/actions'; // Import Action untuk ambil data
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); 
+  
+  // State untuk menyimpan jumlah notifikasi
+  const [counts, setCounts] = useState({ orders: 0, reviews: 0 });
+
+  // Efek untuk mengambil data statistik saat layout dimuat
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const stats = await getAdminStats();
+        setCounts({
+          orders: stats.pendingOrdersCount,
+          reviews: stats.pendingReviewsCount
+        });
+      } catch (error) {
+        console.error("Gagal memuat notifikasi:", error);
+      }
+    };
+
+    fetchNotifications();
+    
+    // Opsional: Auto-refresh notif setiap 30 detik
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Menu Navigasi Terbaru (Produk & Stok Terpisah)
   const navLinks = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-    { href: '/admin/products', label: 'Data Produk', icon: Box }, // Halaman Edit Info Produk
-    { href: '/admin/stock', label: 'Stok Gudang', icon: ClipboardList }, // Halaman Khusus Stok
-    { href: '/admin/orders', label: 'Pesanan Masuk', icon: ShoppingBag },
+    { href: '/admin/products', label: 'Data Produk', icon: Box }, 
+    { href: '/admin/stock', label: 'Stok Gudang', icon: ClipboardList }, 
+    { 
+      href: '/admin/orders', 
+      label: 'Pesanan Masuk', 
+      icon: ShoppingBag, 
+      count: counts.orders // Inject count Pesanan
+    },
     { href: '/admin/sales-history', label: 'Laporan', icon: BarChart },
-    { href: '/admin/reviews', label: 'Ulasan', icon: Star },
+    { 
+      href: '/admin/reviews', 
+      label: 'Ulasan', 
+      icon: Star, 
+      count: counts.reviews // Inject count Ulasan
+    },
   ];
 
   const SidebarContent = () => (
@@ -50,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             return (
               <Link key={link.href} href={link.href}>
                 <div className={cn(
-                  "relative flex items-center px-4 py-3.5 rounded-2xl text-sm font-medium transition-all duration-300 group overflow-hidden",
+                  "relative flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-medium transition-all duration-300 group overflow-hidden",
                   isActive ? "text-white shadow-lg shadow-pink-500/20" : "text-stone-500 hover:bg-pink-50 hover:text-primary"
                 )}>
                   {/* Background Aktif dengan Animasi */}
@@ -63,10 +98,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     />
                   )}
                   
+                  {/* Icon & Label */}
                   <span className="relative z-10 flex items-center">
                     <link.icon size={20} className={cn("mr-3 transition-transform group-hover:scale-110", isActive ? "text-pink-300" : "text-stone-400 group-hover:text-primary")} />
                     {link.label}
                   </span>
+
+                  {/* BADGE NOTIFIKASI (Hanya muncul jika count > 0) */}
+                  {link.count !== undefined && link.count > 0 && (
+                    <span className={cn(
+                      "relative z-10 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full shadow-sm transition-all",
+                      isActive 
+                        ? "bg-rose-500 text-white ring-2 ring-stone-800" // Warna saat menu aktif
+                        : "bg-rose-100 text-rose-600 ring-1 ring-rose-200 group-hover:bg-rose-200" // Warna saat menu tidak aktif
+                    )}>
+                      {link.count > 99 ? '99+' : link.count}
+                    </span>
+                  )}
+
                 </div>
               </Link>
             );
@@ -75,7 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className="p-4 m-4 bg-stone-50 rounded-2xl border border-stone-100 space-y-2 z-10">
              <Button asChild variant="outline" className="w-full justify-start h-10 bg-white border-stone-200 text-stone-600 hover:text-primary hover:border-primary/30 shadow-sm">
-                <Link href="/" target="_blank">
+                <Link href="/?view=preview" target="_blank">
                    <Store size={16} className="mr-2" />
                    Lihat Website
                 </Link>

@@ -18,8 +18,12 @@ export default auth((req) => {
   const isOnProfile = nextUrl.pathname.startsWith('/profile');
   const isOnHome = nextUrl.pathname === '/';
 
-  // --- REDIRECT ADMIN DARI HOME KE DASHBOARD ---
-  if (isOnHome && isLoggedIn && user?.role === 'admin') {
+  // --- LOGIKA BARU: Cek "Kunci Pas" (Mode Preview) ---
+  // Jika ada ?view=preview di URL, admin boleh masuk ke halaman home
+  const isPreviewMode = nextUrl.searchParams.get('view') === 'preview';
+
+  // --- REDIRECT ADMIN DARI HOME KE DASHBOARD (KECUALI PREVIEW) ---
+  if (isOnHome && isLoggedIn && user?.role === 'admin' && !isPreviewMode) {
     return Response.redirect(new URL('/admin', nextUrl));
   }
 
