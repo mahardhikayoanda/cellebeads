@@ -26,7 +26,7 @@ const beadVariants = {
       duration: duration,
       repeat: Infinity,
       repeatType: "reverse" as const,
-      ease: "easeInOut",
+      ease: "easeInOut" as const, // <--- PERBAIKAN DI SINI (tambahkan 'as const')
     },
   }),
 };
