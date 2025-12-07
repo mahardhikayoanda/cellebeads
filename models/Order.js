@@ -28,7 +28,10 @@ const OrderSchema = new Schema({
 }, { timestamps: true });
 
 if (process.env.NODE_ENV === 'development') {
-  if (mongoose.models.Order) delete mongoose.models.Order; // Gunakan mongoose.models
+  if (mongoose.models && mongoose.models.Order) {
+    delete mongoose.models.Order;
+  }
 }
 
-export default mongoose.models.Order || model('Order', OrderSchema); // Gunakan mongoose.models
+const Order = (mongoose.models && mongoose.models.Order) || model('Order', OrderSchema);
+export default Order;

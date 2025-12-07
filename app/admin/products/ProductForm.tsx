@@ -1,3 +1,4 @@
+// File: app/admin/products/ProductForm.tsx
 'use client'; 
 
 import { useState, useRef } from 'react';
@@ -10,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package, DollarSign, Layers, AlignLeft, Image as ImageIcon, UploadCloud, Loader2, Plus, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner'; // <--- IMPORT BARU
 
 export default function ProductForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -48,7 +50,7 @@ export default function ProductForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!category) {
-        alert("Mohon pilih kategori produk terlebih dahulu.");
+        toast.error("Mohon pilih kategori produk terlebih dahulu."); // <--- Toast Error
         return;
     }
     setIsLoading(true);
@@ -61,21 +63,22 @@ export default function ProductForm() {
       const result = await createProduct(formData);
 
       if (result.success) {
-        alert("Produk berhasil ditambahkan!");
+        toast.success("Produk berhasil ditambahkan!"); // <--- Toast Sukses
         formRef.current?.reset();
         setCategory(""); 
         setDisplayPrice(""); 
         setFileName("");
       } else {
-        alert("Gagal: " + result.message);
+        toast.error("Gagal: " + result.message); // <--- Toast Error
       }
     } catch (error) {
-      alert("Terjadi kesalahan server.");
+      toast.error("Terjadi kesalahan server."); // <--- Toast Error
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ... (SISA KODE RENDER JSX TETAP SAMA, TIDAK ADA PERUBAHAN)
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -83,6 +86,7 @@ export default function ProductForm() {
       transition={{ duration: 0.5 }}
     >
       <Card className="glass-panel border-none overflow-hidden">
+        {/* ... Konten Card Header & Form sama seperti sebelumnya ... */}
         <div className="h-2 bg-gradient-to-r from-pink-400 to-purple-500" />
         <CardHeader className="px-8 py-6">
           <div className="flex items-center gap-3">
@@ -98,8 +102,8 @@ export default function ProductForm() {
         
         <CardContent className="p-8 pt-0">
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
-            
-            {/* Section 1: Informasi Dasar */}
+            {/* ... Isi Form sama persis dengan file asli, copy paste bagian render ... */}
+            {/* Section 1, 2, 3, 4 dan Button Submit */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2.5"> 
                 <Label htmlFor="name" className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2">
@@ -128,7 +132,6 @@ export default function ProductForm() {
               </div>
             </div>
             
-            {/* Section 2: Deskripsi */}
             <div className="space-y-2.5">
               <Label htmlFor="description" className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2">
                 <AlignLeft size={14} /> Deskripsi
@@ -142,7 +145,6 @@ export default function ProductForm() {
               />
             </div>
             
-            {/* Section 3: Harga & Stok */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2.5">
                 <Label htmlFor="price" className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2">
@@ -172,7 +174,6 @@ export default function ProductForm() {
               </div>
             </div>
             
-            {/* Section 4: Upload Gambar */}
             <div className="space-y-2.5">
               <Label htmlFor="images" className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2">
                 <ImageIcon size={14} /> Foto Produk
@@ -202,7 +203,6 @@ export default function ProductForm() {
               </div>
             </div>
 
-            {/* Submit Button */}
             <div className="pt-4">
               <Button type="submit" disabled={isLoading} className="w-full h-14 text-base font-bold bg-stone-800 hover:bg-stone-900 shadow-xl shadow-stone-900/10 transition-all hover:-translate-y-1 rounded-xl">
                 {isLoading ? (

@@ -9,9 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // CardContent removed if not used or add it back
 import { motion } from 'framer-motion'; 
-import { Loader2, MessageCircle } from 'lucide-react'; // Ikon WhatsApp
+import { Loader2, MessageCircle } from 'lucide-react'; 
+import { toast } from 'sonner'; // <--- IMPORT BARU
 
 interface IActionCartItem {
   _id: string; name: string; price: number; qty: number;
@@ -43,13 +44,17 @@ export default function CheckoutForm() {
       const result = await createOrder(formData, itemsForAction); 
       if (result.success && result.waUrl) {
         clearCart(); 
-        window.location.href = result.waUrl; 
+        toast.success("Pesanan berhasil dibuat! Mengalihkan ke WhatsApp..."); // <--- Toast Sukses
+        // Beri sedikit jeda agar toast terbaca sebelum redirect
+        setTimeout(() => {
+            window.location.href = result.waUrl!; 
+        }, 1500);
       } else {
-        alert(result.message || "Terjadi kesalahan.");
+        toast.error(result.message || "Terjadi kesalahan."); // <--- Toast Error
         setIsLoading(false);
       }
     } catch (error) {
-      alert("Gagal terhubung ke server.");
+      toast.error("Gagal terhubung ke server."); // <--- Toast Error
       setIsLoading(false);
     }
   };

@@ -19,7 +19,10 @@ const ProductSchema = new Schema({
 }, { timestamps: true });
 
 if (process.env.NODE_ENV === 'development') {
-  if (mongoose.models.Product) delete mongoose.models.Product;
+  if (mongoose.models && mongoose.models.Product) {
+    delete mongoose.models.Product;
+  }
 }
 
-export default mongoose.models.Product || model('Product', ProductSchema);
+const Product = (mongoose.models && mongoose.models.Product) || model('Product', ProductSchema);
+export default Product;

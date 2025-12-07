@@ -1,30 +1,34 @@
 // File: app/dashboard/my-orders/OrderActionsClient.tsx
 'use client';
 import { useState } from 'react';
-import { IOrderWithReview } from './actions'; // <-- 1. Import tipe data baru
+import { IOrderWithReview } from './actions';
 import { markOrderAsDelivered, submitReview } from './actions';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card"; 
-import { Star, CheckCircle } from 'lucide-react'; // <-- 2. Import ikon
+import { Star, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner'; // <--- IMPORT BARU
 
-interface Props { order: IOrderWithReview; } // <-- 3. Gunakan tipe data baru
+interface Props { order: IOrderWithReview; }
 
 export default function OrderActionsClient({ order }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState<string | null>(null);
   
-  // 4. State untuk Rating Bintang
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
 
   const handleDelivered = async () => {
     setIsLoading(true);
     const result = await markOrderAsDelivered(order._id);
-    if (!result.success) alert(result.message);
+    if (result.success) {
+        toast.success("Status pesanan diperbarui!"); // <--- Toast Sukses
+    } else {
+        toast.error(result.message); // <--- Toast Error
+    }
     setIsLoading(false);
   };
   
@@ -33,20 +37,20 @@ export default function OrderActionsClient({ order }: Props) {
     setIsLoading(true);
     
     const formData = new FormData(e.currentTarget);
-    // 5. Masukkan rating dari state Bintang ke FormData
     formData.set('rating', rating.toString()); 
 
     const result = await submitReview(formData);
     
     if (result.success) {
-      alert("Ulasan terkirim! Terima kasih.");
+      toast.success("Ulasan terkirim! Terima kasih."); // <--- Toast Sukses
       setShowReviewForm(null);
     } else {
-      alert("Gagal: " + (result.message || 'Terjadi kesalahan'));
+      toast.error("Gagal: " + (result.message || 'Terjadi kesalahan')); // <--- Toast Error
     }
     setIsLoading(false);
   };
 
+  // ... (SISA KODE RENDER JSX TETAP SAMA, TIDAK ADA PERUBAHAN)
   // 6. Tombol Pesanan Diterima (Jika status 'processed')
   if (order.status === 'processed') {
     return (

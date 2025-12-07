@@ -1,36 +1,46 @@
 // File: app/login/page.tsx
 'use client';
 
-import { useState, Suspense } from 'react'; // 1. Import Suspense
+import { useState, Suspense, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation'; // <-- Import useRouter
 import { Button } from "@/components/ui/button"; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner'; // <--- IMPORT BARU
 
-// 2. Pisahkan logika form ke komponen tersendiri (Child Component)
 function LoginForm() {
   const [googleLoading, setGoogleLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
-  
   const searchParams = useSearchParams();
-  const urlError = searchParams.get('error');
+  const router = useRouter(); // <-- Inisialisasi Router
+  const error = searchParams.get('error');
+
+  // Efek untuk menangkap error dari URL dan menampilkannya sebagai Toast
+  useEffect(() => {
+    if (error) {
+      const message = error === 'CredentialsSignin' 
+        ? 'Login gagal. Kredensial tidak valid.' 
+        : 'Terjadi kesalahan saat login.';
+      
+      // Tampilkan Toast Error
+      toast.error(message);
+
+      // Bersihkan URL agar error tidak muncul terus saat refresh
+      router.replace('/login', { scroll: false });
+    }
+  }, [error, router]);
 
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      setError('');
-      
-      // Trigger Google Sign-In dengan redirect otomatis
       await signIn('google', { 
         callbackUrl: '/', 
         redirect: true 
       });
-      
     } catch (err) {
       console.error('Google Sign-In Error:', err);
-      setError('Gagal login dengan Google. Silakan coba lagi.');
+      toast.error('Gagal terhubung ke Google.'); // <--- Toast Error
       setGoogleLoading(false);
     }
   };
@@ -45,12 +55,7 @@ function LoginForm() {
       <CardContent className="px-8 pb-10 pt-6">
         
         <div className="space-y-6">
-          {/* Pesan Error */}
-          {(error || urlError) && (
-            <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">
-              {error || "Terjadi kesalahan saat masuk. Silakan coba lagi."}
-            </div>
-          )}
+          {/* BAGIAN ERROR DIV DIHAPUS KARENA SUDAH DIGANTI TOAST */}
 
           <Button 
             size="lg"
@@ -95,7 +100,6 @@ function LoginForm() {
   );
 }
 
-// 3. Komponen Utama (Parent) yang membungkus LoginForm dengan Suspense
 export default function LoginPage() {
   return (
     <div className="flex justify-center items-center min-h-[calc(100vh-200px)] p-4"> 
@@ -105,7 +109,6 @@ export default function LoginPage() {
         transition={{ type: 'spring', stiffness: 100, duration: 0.5 }}
         className="w-full max-w-md"
       >
-        {/* Suspense Boundary Wajib untuk useSearchParams di Client Component */}
         <Suspense fallback={<div className="text-center p-10"><Loader2 className="animate-spin h-8 w-8 mx-auto text-stone-400"/></div>}>
           <LoginForm />
         </Suspense>

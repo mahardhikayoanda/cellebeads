@@ -7,9 +7,7 @@ const UserSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: false }, 
   
-  // --- TAMBAHAN BARU ---
-  image: { type: String }, // Field untuk menyimpan URL foto
-  // ---------------------
+  image: { type: String }, 
 
   role: {
     type: String,
@@ -29,7 +27,6 @@ const UserSchema = new Schema({
 
 }, { timestamps: true });
 
-// Hash password HANYA JIKA password diubah
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password') || !this.password) {
     return next();
@@ -44,8 +41,14 @@ UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// --- BAGIAN YANG DIPERBAIKI ---
+// Cek apakah mongoose.models ada sebelum mengaksesnya
 if (process.env.NODE_ENV === 'development') {
-  if (mongoose.models.User) delete mongoose.models.User;
+  if (mongoose.models && mongoose.models.User) {
+    delete mongoose.models.User;
+  }
 }
 
-export default mongoose.models.User || model('User', UserSchema);
+// Gunakan pengecekan yang sama saat export
+const User = (mongoose.models && mongoose.models.User) || model('User', UserSchema);
+export default User;

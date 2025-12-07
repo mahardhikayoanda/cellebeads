@@ -26,8 +26,10 @@ export default function Navbar() {
   const pathname = usePathname(); 
   
   const totalItems = getTotalItems ? getTotalItems() : 0;
-  const userRole = (session?.user as any)?.role;
-  const profileComplete = (session?.user as any)?.profileComplete;
+  
+  // --- PERBAIKAN: Akses langsung properti tanpa casting 'any' ---
+  const userRole = session?.user?.role;
+  const profileComplete = session?.user?.profileComplete;
   const userName = session?.user?.name || "Pengguna";
 
   const getInitials = (name: string) => {
@@ -45,10 +47,9 @@ export default function Navbar() {
   }
 
   // --- 2. LOGIKA KHUSUS ADMIN: Sembunyikan Navbar Sepenuhnya ---
-  // Karena Admin sudah punya Sidebar sendiri di layout.tsx
   const isAdminPage = pathname?.startsWith('/admin');
   if (isAdminPage) {
-    return null; // <--- UBAH DI SINI (Return null agar hilang total)
+    return null; 
   }
 
   // --- 3. TAMPILAN STANDAR (CUSTOMER) ---
@@ -124,7 +125,7 @@ export default function Navbar() {
             <Search className="h-5 w-5" />
           </Button>
 
-          {/* Cart (Hanya untuk Customer / Tamu) */}
+          {/* Cart (Hanya untuk Customer / Tamu yang profileComplete) */}
           {(!session || (profileComplete && userRole !== 'admin')) && (
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative text-stone-500 hover:text-primary hover:bg-pink-50 rounded-full transition-all">

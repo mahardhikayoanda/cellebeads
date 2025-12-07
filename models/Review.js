@@ -17,7 +17,10 @@ const ReviewSchema = new Schema({
 }, { timestamps: true });
 
 if (process.env.NODE_ENV === 'development') {
-  if (mongoose.models.Review) delete mongoose.models.Review;
+  if (mongoose.models && mongoose.models.Review) {
+    delete mongoose.models.Review;
+  }
 }
 
-export default mongoose.models.Review || model('Review', ReviewSchema);
+const Review = (mongoose.models && mongoose.models.Review) || model('Review', ReviewSchema);
+export default Review;
