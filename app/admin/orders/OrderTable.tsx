@@ -5,21 +5,36 @@ import { IOrder } from './actions';
 import OrderClientActions from './OrderClientActions'; 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Clock, CheckCircle2, Truck, XCircle } from 'lucide-react';
 
 export default function OrderTable({ orders }: { orders: IOrder[] }) {
+  
+  // Helper untuk Badge Status Cantik
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><Clock size={12}/> Menunggu</Badge>;
+      case 'processed':
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><Truck size={12}/> Diproses</Badge>;
+      case 'delivered':
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><CheckCircle2 size={12}/> Selesai</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
-    <div className="overflow-x-auto pb-4">
-      {/* HAPUS KOMENTAR DI DALAM TABLE UNTUK MENGHINDARI ERROR HYDRATION */}
+    <div className="glass-super rounded-3xl overflow-hidden pb-4">
       <Table className="min-w-[800px]">
-        <TableHeader className="bg-stone-50/50">
-          <TableRow className="hover:bg-transparent border-stone-100">
-            <TableHead className="pl-6 font-semibold text-stone-600">ID Order</TableHead>
-            <TableHead className="font-semibold text-stone-600">Tanggal</TableHead>
-            <TableHead className="font-semibold text-stone-600">Pelanggan</TableHead>
-            <TableHead className="font-semibold text-stone-600">Item</TableHead>
-            <TableHead className="text-right font-semibold text-stone-600">Total</TableHead>
-            <TableHead className="text-center font-semibold text-stone-600">Status</TableHead>
-            <TableHead className="text-center pr-6 font-semibold text-stone-600">Aksi</TableHead>
+        <TableHeader className="bg-pink-50/60 backdrop-blur-sm">
+          <TableRow className="hover:bg-transparent border-pink-100/50">
+            <TableHead className="pl-8 py-5 font-lora font-bold text-stone-700">ID Pesanan</TableHead>
+            <TableHead className="font-lora font-bold text-stone-700">Waktu</TableHead>
+            <TableHead className="font-lora font-bold text-stone-700">Pelanggan</TableHead>
+            <TableHead className="font-lora font-bold text-stone-700">Detail Item</TableHead>
+            <TableHead className="text-right font-lora font-bold text-stone-700">Total</TableHead>
+            <TableHead className="text-center font-lora font-bold text-stone-700">Status</TableHead>
+            <TableHead className="text-center pr-8 font-lora font-bold text-stone-700">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <motion.tbody 
@@ -28,44 +43,37 @@ export default function OrderTable({ orders }: { orders: IOrder[] }) {
         >
           {orders.map((order) => (
             <motion.tr 
-              variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+              variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}
               key={order._id} 
-              className="border-b border-stone-50 hover:bg-stone-50/30 transition-colors"
+              className="border-b border-pink-50 hover:bg-white/60 transition-colors"
             >
-              <TableCell className="pl-6 font-mono text-xs text-stone-400">
+              <TableCell className="pl-8 py-4 font-mono text-xs font-bold text-stone-500 bg-stone-50/30 rounded-r-lg w-fit my-2">
                 #{order._id.substring(order._id.length - 6).toUpperCase()}
               </TableCell>
               <TableCell className="text-sm text-stone-600">
-                {new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                <div className="flex flex-col">
+                   <span className="font-bold">{new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                   <span className="text-xs text-stone-400">{new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute:'2-digit' })}</span>
+                </div>
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                  <span className="font-medium text-stone-800">{order.user?.name || 'Guest'}</span>
-                  <span className="text-[10px] text-stone-400">{order.user?.email}</span>
+                  <span className="font-bold text-stone-800 text-base">{order.user?.name || 'Guest'}</span>
+                  <span className="text-xs text-pink-400">{order.user?.email}</span>
                 </div>
               </TableCell>
               <TableCell className="text-sm text-stone-600">
-                 <span className="truncate max-w-[150px] block" title={order.items.map(i => i.name).join(', ')}>
-                    {order.items.length} Barang 
-                    <span className="text-xs text-stone-400 ml-1 italic">
-                      ({order.items[0].name}{order.items.length > 1 ? '...' : ''})
-                    </span>
+                 <span className="bg-white px-3 py-1.5 rounded-xl border border-stone-100 shadow-sm inline-block max-w-[200px] truncate">
+                    {order.items.length} Barang: <span className="italic text-stone-400">{order.items[0].name}...</span>
                  </span>
               </TableCell>
-              <TableCell className="text-right font-bold text-stone-700">
+              <TableCell className="text-right font-bold text-lg text-primary font-lora">
                 Rp {order.totalPrice.toLocaleString('id-ID')}
               </TableCell>
               <TableCell className="text-center">
-                <Badge variant="outline" className={`
-                    ${order.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : ''}
-                    ${order.status === 'processed' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
-                    ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ''}
-                    capitalize font-normal shadow-none px-2.5 py-0.5 whitespace-nowrap
-                `}>
-                    {order.status === 'delivered' ? 'Selesai' : (order.status === 'pending' ? 'Menunggu' : 'Diproses')}
-                </Badge>
+                {getStatusBadge(order.status)}
               </TableCell>
-              <TableCell className="text-center pr-6">
+              <TableCell className="text-center pr-8">
                 <div className="flex justify-center">
                    <OrderClientActions orderId={order._id} status={order.status} />
                 </div>
@@ -74,8 +82,8 @@ export default function OrderTable({ orders }: { orders: IOrder[] }) {
           ))}
           {orders.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-stone-400 py-16 italic bg-stone-50/20">
-                Belum ada pesanan masuk saat ini.
+              <TableCell colSpan={7} className="text-center text-stone-400 py-20 italic">
+                Belum ada pesanan masuk, semangat promosi! 🌸
               </TableCell>
             </TableRow>
           )}

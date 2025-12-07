@@ -1,108 +1,47 @@
+/* File: app/globals.css */
 @import "tailwindcss";
 
 :root {
-  /* --- TEMA: TROPICAL BERRY (Lively & Fresh) --- */
-  
-  /* BACKGROUND: Soft Rose Mist (Bukan Putih Murni!) */
-  /* Ini memberikan nuansa hangat agar warna pastel lain terlihat jelas */
-  --background: 330 35% 97%; 
-  
-  /* TEKS: Deep Plum (Ungu Gelap, lebih manis daripada hitam) */
-  --foreground: 270 50% 20%; 
-
-  /* CARD: Putih Bersih (Agar kontras dengan background web) */
+  /* Tema: Luxury Rose */
+  --background: 330 30% 98%; /* Cream Pink sangat muda */
+  --foreground: 330 40% 15%; /* Deep Maroon/Brown text */
   --card: 0 0% 100%;
-  --card-foreground: 270 50% 20%;
-
+  --card-foreground: 330 40% 15%;
   --popover: 0 0% 100%;
-  --popover-foreground: 270 50% 20%;
-
-  /* PRIMARY: Vibrant Raspberry (Pink Fanta yang Segar) */
-  --primary: 336 85% 55%; 
-  --primary-foreground: 0 0% 100%; 
-
-  /* SECONDARY: Lavender Mist (Ungu Muda untuk variasi) */
-  --secondary: 260 60% 96%;
-  --secondary-foreground: 270 60% 40%;
-
-  /* MUTED: Abu Ungu (Pemisah yang tidak kaku) */
-  --muted: 270 20% 90%;
-  --muted-foreground: 270 10% 50%;
-
-  /* ACCENT: Fresh Teal (Hijau Tosca untuk kesegaran mata) */
-  --accent: 170 70% 40%;
-  --accent-foreground: 0 0% 100%;
-
-  /* DESTRUCTIVE: Strawberry Red */
-  --destructive: 350 80% 60%;
-  --destructive-foreground: 0 0% 100%;
-
-  --border: 336 20% 85%; /* Border sedikit lebih terlihat */
-  --input: 336 20% 85%;
-  
-  /* RING: Fokus warna Raspberry */
-  --ring: 336 85% 55%; 
-
-  --radius: 1rem; 
-}
-
-.dark {
-  /* Mode Gelap tetap bernuansa Pink-Ungu */
-  --background: 330 20% 10%;
-  --foreground: 330 10% 95%;
-  --card: 330 20% 15%;
-  --card-foreground: 330 10% 95%;
-  --popover: 330 20% 15%;
-  --popover-foreground: 330 10% 95%;
-  --primary: 336 85% 60%;
+  --popover-foreground: 330 40% 15%;
+  --primary: 336 80% 50%; /* Pink Raspberry Vivid */
   --primary-foreground: 0 0% 100%;
-  --secondary: 260 30% 20%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 270 20% 20%;
-  --muted-foreground: 270 10% 60%;
-  --accent: 170 70% 45%;
+  --secondary: 336 30% 90%;
+  --secondary-foreground: 336 80% 40%;
+  --muted: 330 20% 96%;
+  --muted-foreground: 330 10% 50%;
+  --accent: 170 60% 40%; /* Teal kontras */
   --accent-foreground: 0 0% 100%;
-  --destructive: 350 80% 60%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 336 20% 20%;
-  --input: 336 20% 20%;
-  --ring: 336 85% 60%;
+  --border: 330 20% 90%;
+  --input: 330 20% 90%;
+  --ring: 336 80% 50%;
+  --radius: 1.5rem; /* Sudut lebih bulat (feminine curve) */
 }
 
 @layer utilities {
-  .scrollbar-hide::-webkit-scrollbar {
-      display: none;
-  }
-  .scrollbar-hide {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-  }
-}
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  /* Scrollbar Cantik */
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #fbcfe8; border-radius: 20px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background-color: #be185d; }
 
-@layer utilities {
-  /* Scrollbar Imut */
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--primary) / 0.3);
-    border-radius: 20px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--primary) / 0.6);
-  }
-
-  /* Efek Kaca Frosted */
-  .glass-panel {
-    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-xl shadow-pink-500/5;
+  /* KELAS SUPER GLASSMORPHISM */
+  .glass-super {
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)];
   }
   
-  /* Efek Card Hover */
-  .hover-card {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-500/10;
+  /* Efek Hover Floating */
+  .hover-float {
+    @apply transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-2xl hover:shadow-pink-500/20;
   }
 }

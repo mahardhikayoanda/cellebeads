@@ -7,6 +7,10 @@ const UserSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: false }, 
   
+  // --- TAMBAHAN BARU ---
+  image: { type: String }, // Field untuk menyimpan URL foto
+  // ---------------------
+
   role: {
     type: String,
     enum: ['admin', 'customer'],
@@ -16,11 +20,9 @@ const UserSchema = new Schema({
   phone: { type: String },
   gender: { type: String, enum: ['Pria', 'Wanita'] },
   
-  // --- TAMBAHAN BARU: PROFIL LENGKAP ---
   dateOfBirth: { type: Date },
   bio: { type: String },
   address: { type: String },
-  // -------------------------------------
 
   authProvider: { type: String, default: 'credentials' }, 
   profileComplete: { type: Boolean, default: false } 

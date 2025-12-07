@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, LogOut, Menu, Package, LayoutDashboard, Search, Settings, UserCog } from 'lucide-react'; 
+import { ShoppingCart, User, LogOut, Menu, Package, Search } from 'lucide-react'; 
 import { useCart } from '@/context/CartContext';
 import { motion } from 'framer-motion'; 
 import { usePathname } from 'next/navigation'; 
@@ -19,7 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { cn } from '@/lib/utils';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -31,7 +30,6 @@ export default function Navbar() {
   const profileComplete = (session?.user as any)?.profileComplete;
   const userName = session?.user?.name || "Pengguna";
 
-  // Helper untuk inisial nama (Misal: Mahardhika Yoanda -> MY)
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -46,60 +44,11 @@ export default function Navbar() {
     return null;
   }
 
-  // --- 2. LOGIKA KHUSUS ADMIN: Hanya Tampilkan Profil ---
+  // --- 2. LOGIKA KHUSUS ADMIN: Sembunyikan Navbar Sepenuhnya ---
+  // Karena Admin sudah punya Sidebar sendiri di layout.tsx
   const isAdminPage = pathname?.startsWith('/admin');
-
   if (isAdminPage) {
-    return (
-      <div className="fixed top-0 right-0 z-50 p-4 flex justify-end pointer-events-none">
-        {/* Container Profil agar bisa diklik (pointer-events-auto) */}
-        <div className="pointer-events-auto bg-white/80 backdrop-blur-md p-1 rounded-full shadow-sm border border-stone-200">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-pink-50">
-                <div className="w-8 h-8 bg-stone-800 rounded-full flex items-center justify-center text-white font-bold shadow-inner text-xs">
-                    {getInitials(userName)}
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 rounded-xl p-2">
-              <DropdownMenuLabel className="flex flex-col gap-1">
-                {/* Nama Admin Dinamis */}
-                <p className="font-bold text-base text-stone-800 truncate">{userName}</p>
-                <p className="text-xs font-normal text-stone-500 truncate">{session?.user?.email}</p>
-                <span className="text-[10px] font-bold text-primary bg-pink-50 px-2 py-0.5 rounded-full w-fit mt-1 border border-pink-100">
-                  Administrator
-                </span>
-              </DropdownMenuLabel>
-              
-              <DropdownMenuSeparator className="my-2 bg-stone-100" />
-              
-              {/* Menu Profil Admin (Pengganti Lihat Toko) */}
-              <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-stone-100 p-2">
-                <Link href="/admin/profile" className="flex items-center font-medium text-stone-700">
-                  <div className="p-1.5 bg-stone-100 rounded-md mr-3 text-stone-600">
-                    <UserCog size={16} />
-                  </div>
-                  Profil Admin
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator className="my-2 bg-stone-100" />
-              
-              <DropdownMenuItem 
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="cursor-pointer rounded-lg focus:bg-rose-50 p-2 text-rose-600 focus:text-rose-700"
-              >
-                <div className="p-1.5 bg-rose-100 rounded-md mr-3 text-rose-500">
-                   <LogOut size={16} />
-                </div>
-                <span className="font-bold">Keluar</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    );
+    return null; // <--- UBAH DI SINI (Return null agar hilang total)
   }
 
   // --- 3. TAMPILAN STANDAR (CUSTOMER) ---

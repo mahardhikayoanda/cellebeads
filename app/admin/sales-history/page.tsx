@@ -3,7 +3,7 @@ import { getCompletedOrdersWithItems, IOrderItem } from './actions';
 import { Card, CardContent } from "@/components/ui/card";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Calendar, CalendarRange, CalendarDays, CalendarCheck, Layers } from 'lucide-react';
+import { TrendingUp, Calendar, CalendarRange, CalendarDays, CalendarCheck, BarChart } from 'lucide-react';
 import SalesHistoryTable from './SalesHistoryTable';
 
 interface PageProps {
@@ -34,17 +34,26 @@ export default async function SalesHistoryPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h1 className="text-3xl font-lora font-semibold text-stone-800 mb-2">Laporan Penjualan</h1>
-          <div className="flex flex-wrap gap-1 bg-white border border-stone-200 p-1 rounded-full shadow-sm w-fit mt-2">
-            <FilterButton value="all" label="Semua" icon={Layers} />
-            <FilterButton value="daily" label="Hari Ini" icon={Calendar} />
-            <FilterButton value="weekly" label="Minggu Ini" icon={CalendarRange} />
-            <FilterButton value="monthly" label="Bulan Ini" icon={CalendarDays} />
-            {/* Tombol Filter Tahunan */}
-            <FilterButton value="yearly" label="Tahun Ini" icon={CalendarCheck} />
-          </div>
+      
+      {/* --- HEADER BARU --- */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-xl text-white shadow-lg shadow-pink-200">
+               <BarChart size={24} />
+            </div>
+            <div>
+               <h1 className="text-3xl font-lora font-bold text-stone-800">Laporan Keuangan</h1>
+               <p className="text-stone-500">Analisis pendapatan dan riwayat penjualan toko.</p>
+               
+               {/* Filter dipindahkan ke bawah text agar rapi */}
+               <div className="flex flex-wrap gap-1 bg-white border border-stone-200 p-1 rounded-full shadow-sm w-fit mt-3">
+                  <FilterButton value="all" label="Semua" icon={BarChart} />
+                  <FilterButton value="daily" label="Hari Ini" icon={Calendar} />
+                  <FilterButton value="weekly" label="Minggu Ini" icon={CalendarRange} />
+                  <FilterButton value="monthly" label="Bulan Ini" icon={CalendarDays} />
+                  <FilterButton value="yearly" label="Tahun Ini" icon={CalendarCheck} />
+               </div>
+            </div>
         </div>
         
         <div className="bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 p-6 rounded-2xl shadow-sm min-w-[250px] hover:-translate-y-1 transition-transform duration-500">
@@ -57,6 +66,7 @@ export default async function SalesHistoryPage({ searchParams }: PageProps) {
           </div>
         </div>
       </div>
+      {/* ------------------- */}
 
       <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
          <CardContent className="p-0">
