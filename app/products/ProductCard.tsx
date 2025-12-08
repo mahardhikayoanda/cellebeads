@@ -1,96 +1,79 @@
 // File: app/products/ProductCard.tsx
 'use client';
-import { useCart, ICartItem } from '@/context/CartContext'; 
-import Image from 'next/image';
+
 import Link from 'next/link';
-import { motion } from 'framer-motion'; 
-import { ShoppingBag } from 'lucide-react'; 
+import Image from 'next/image';
+import { IProduct } from '@/app/admin/products/actions';
+import { ShoppingCart } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-interface IProduct {
-  _id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  images: string[]; 
-  category: string;
-}
-interface ProductCardProps { product: IProduct; }
-
-export default function ProductCard({ product }: ProductCardProps) {
-  const { addToCart } = useCart();
-  const mainImage = product.images && product.images.length > 0 ? product.images[0] : '/placeholder-banner.jpg';
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault(); 
-    const itemToAdd: ICartItem = {
-      _id: product._id,
-      name: product.name,
-      price: product.price,
-      image: mainImage, 
-      quantity: 1, 
-      selected: true
-    };
-    addToCart(itemToAdd);
-  };
+export default function ProductCard({ product }: { product: IProduct }) {
+  // Format Rupiah
+  const formatPrice = (price: number) => 
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 
   return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-      }}
-      whileHover={{ y: -5 }} 
-      className="group relative"
-    >
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-stone-100">
+    <Link href={`/products/${product._id}`} className="group h-full block">
+      <motion.div 
+        whileHover={{ y: -8 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="h-full bg-white rounded-3xl overflow-hidden border border-stone-100 shadow-sm hover:shadow-xl hover:shadow-pink-100/50 transition-all duration-300 flex flex-col relative"
+      >
         
-        <Link href={`/products/${product._id}`} className="block relative">
-          {/* PERBAIKAN: Tinggi Gambar Responsif (h-40 di HP, h-72 di Desktop) */}
-          <div className="relative h-40 md:h-72 w-full overflow-hidden bg-stone-50">
-            <Image 
-              src={mainImage} 
-              alt={product.name} 
-              fill 
-              className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
-            />
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Gambar Produk */}
+        <div className="relative aspect-square overflow-hidden bg-stone-50">
+           {product.images && product.images.length > 0 ? (
+             <Image 
+               src={product.images[0]} 
+               alt={product.name}
+               fill
+               className="object-cover transition-transform duration-700 group-hover:scale-110"
+               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+             />
+           ) : (
+             <div className="w-full h-full flex items-center justify-center text-stone-300">No Image</div>
+           )}
+           
+           {/* Overlay Hitam Halus saat Hover */}
+           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
 
-            {product.stock === 0 && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-                <span className="bg-stone-900 text-white text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 rounded-full tracking-widest uppercase">
-                  Habis
-                </span>
+           {/* Badge Kategori */}
+           <div className="absolute top-3 left-3">
+              <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-stone-600 shadow-sm">
+                {product.category}
+              </span>
+           </div>
+
+           {/* Tombol Quick Action (Icon Keranjang) */}
+           <div className="absolute bottom-3 right-3 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
+              <div className="bg-white text-stone-800 p-3 rounded-full shadow-lg hover:bg-pink-600 hover:text-white transition-colors">
+                 <ShoppingCart size={18} />
               </div>
-            )}
+           </div>
+        </div>
 
-            {/* Tombol Cart (Hanya muncul di Desktop saat hover, di HP user klik detail dulu) */}
-            {product.stock > 0 && (
-               <button
-                 onClick={handleAddToCart}
-                 className="hidden md:flex absolute bottom-4 right-4 w-10 h-10 bg-white/90 hover:bg-primary hover:text-white text-stone-800 rounded-full items-center justify-center shadow-lg translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out"
-                 title="Tambah ke Keranjang"
-               >
-                 <ShoppingBag className="w-4 h-4" />
-               </button>
-            )}
-          </div>
+        {/* Info Produk */}
+        <div className="p-5 flex flex-col flex-grow">
+           <h3 className="font-lora font-bold text-lg text-stone-800 line-clamp-1 group-hover:text-pink-600 transition-colors mb-1">
+             {product.name}
+           </h3>
+           
+           {/* Deskripsi Singkat (Opsional) */}
+           <p className="text-xs text-stone-500 line-clamp-2 mb-4 flex-grow">
+             {product.description}
+           </p>
 
-          {/* Informasi Produk: Padding & Font lebih kecil di HP */}
-          <div className="p-3 md:p-5 text-center">
-            <p className="text-[10px] md:text-xs text-primary font-bold tracking-widest uppercase mb-1">
-              {product.category || 'Aksesoris'}
-            </p>
-            <h3 className="text-sm md:text-lg font-lora text-stone-800 font-medium mb-1 md:mb-2 group-hover:text-primary transition-colors line-clamp-1">
-              {product.name}
-            </h3>
-            <p className="text-xs md:text-base text-stone-600 font-semibold">
-              Rp {product.price.toLocaleString('id-ID')}
-            </p>
-          </div>
-        </Link>
-      </div>
-    </motion.div>
+           <div className="flex items-center justify-between mt-auto pt-4 border-t border-dashed border-stone-100">
+              <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600">
+                {formatPrice(product.price)}
+              </span>
+              <span className="text-[10px] font-medium text-stone-400 bg-stone-50 px-2 py-1 rounded">
+                Stok: {product.stock}
+              </span>
+           </div>
+        </div>
+
+      </motion.div>
+    </Link>
   );
 }
