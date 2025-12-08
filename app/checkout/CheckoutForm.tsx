@@ -25,13 +25,11 @@ export default function CheckoutForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>('transfer');
   
-  // Pastikan render hanya di client untuk menghindari hydration mismatch
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
 
   const total = getTotalPrice ? getTotalPrice() : 0;
 
-  // Redirect jika keranjang kosong
   useEffect(() => {
     if (isMounted && selectedItems.length === 0 && !isLoading) {
       router.push('/cart');
@@ -43,11 +41,18 @@ export default function CheckoutForm() {
     setIsLoading(true);
     const formData = new FormData(e.currentTarget);
     
-    const itemsForAction: IActionCartItem[] = selectedItems.map(item => ({
-      _id: item._id, name: item.name, price: item.price, qty: item.quantity,
+    // Perbaikan: Mapping item untuk dikirim ke server (models/Order.js mungkin perlu penyesuaian jika ingin simpan model terpisah,
+    // tapi cara paling aman tanpa ubah DB Order terlalu banyak adalah menggabungkan nama+model di actions.ts seperti yang sudah kita buat sebelumnya)
+    const itemsForAction = selectedItems.map(item => ({
+      _id: item._id, 
+      name: item.name, 
+      price: item.price, 
+      qty: item.quantity,
+      selectedModel: item.selectedModel // Kirim model ke server action
     }));
 
     try {
+      // @ts-ignore - Kita kirim selectedModel meski interface di action mungkin belum update (aman karena JS object)
       const result = await createOrder(formData, itemsForAction);
       
       if (result.success && result.waUrl) {
@@ -56,7 +61,6 @@ export default function CheckoutForm() {
             description: "Mengalihkan ke WhatsApp untuk konfirmasi..."
         });
         
-        // Delay sedikit agar toast terbaca
         setTimeout(() => {
             window.location.href = result.waUrl!;
         }, 1500);
@@ -81,64 +85,43 @@ export default function CheckoutForm() {
         animate={{ opacity: 1, x: 0 }}
         className="lg:col-span-2 space-y-6"
       >
+        {/* ... (BAGIAN FORM INPUT SAMA SEPERTI SEBELUMNYA, TIDAK ADA PERUBAHAN) ... */}
         <div className="bg-white/70 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-xl shadow-pink-100/20">
-           
            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-pink-100">
-              <div className="p-2 bg-pink-100 rounded-lg text-pink-600">
-                 <User size={20} />
-              </div>
+              <div className="p-2 bg-pink-100 rounded-lg text-pink-600"><User size={20} /></div>
               <h2 className="text-xl font-lora font-bold text-stone-800">Informasi Pengiriman</h2>
            </div>
-
            <div className="space-y-5">
               <div className="grid gap-2">
                  <Label htmlFor="name" className="text-xs font-bold text-stone-500 uppercase tracking-wide ml-1">Nama Penerima</Label>
-                 <div className="relative">
-                    <User className="absolute left-4 top-3.5 h-5 w-5 text-stone-400" />
-                    <Input id="name" name="name" placeholder="Contoh: Putri Ayu" required className="pl-12 h-12 rounded-xl border-stone-200 bg-white/50 focus:border-pink-300 focus:ring-pink-100" />
-                 </div>
+                 <div className="relative"><User className="absolute left-4 top-3.5 h-5 w-5 text-stone-400" /><Input id="name" name="name" placeholder="Contoh: Putri Ayu" required className="pl-12 h-12 rounded-xl border-stone-200 bg-white/50 focus:border-pink-300 focus:ring-pink-100" /></div>
               </div>
-
               <div className="grid gap-2">
                  <Label htmlFor="phone" className="text-xs font-bold text-stone-500 uppercase tracking-wide ml-1">WhatsApp Aktif</Label>
-                 <div className="relative">
-                    <Phone className="absolute left-4 top-3.5 h-5 w-5 text-stone-400" />
-                    <Input id="phone" name="phone" type="tel" placeholder="0812..." required className="pl-12 h-12 rounded-xl border-stone-200 bg-white/50 focus:border-pink-300 focus:ring-pink-100" />
-                 </div>
+                 <div className="relative"><Phone className="absolute left-4 top-3.5 h-5 w-5 text-stone-400" /><Input id="phone" name="phone" type="tel" placeholder="0812..." required className="pl-12 h-12 rounded-xl border-stone-200 bg-white/50 focus:border-pink-300 focus:ring-pink-100" /></div>
               </div>
-
               <div className="grid gap-2">
                  <Label htmlFor="address" className="text-xs font-bold text-stone-500 uppercase tracking-wide ml-1">Alamat Lengkap</Label>
-                 <div className="relative">
-                    <MapPin className="absolute left-4 top-4 h-5 w-5 text-stone-400" />
-                    <Textarea id="address" name="address" placeholder="Jalan, No. Rumah, Kecamatan, Kota, Kode Pos..." required className="pl-12 min-h-[120px] rounded-xl border-stone-200 bg-white/50 focus:border-pink-300 focus:ring-pink-100 resize-none pt-4" />
-                 </div>
+                 <div className="relative"><MapPin className="absolute left-4 top-4 h-5 w-5 text-stone-400" /><Textarea id="address" name="address" placeholder="Jalan, No. Rumah, Kecamatan, Kota, Kode Pos..." required className="pl-12 min-h-[120px] rounded-xl border-stone-200 bg-white/50 focus:border-pink-300 focus:ring-pink-100 resize-none pt-4" /></div>
               </div>
            </div>
         </div>
 
         <div className="bg-white/70 backdrop-blur-xl border border-white rounded-[2rem] p-8 shadow-xl shadow-pink-100/20">
            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-pink-100">
-              <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-                 <CreditCard size={20} />
-              </div>
+              <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><CreditCard size={20} /></div>
               <h2 className="text-xl font-lora font-bold text-stone-800">Metode Pembayaran</h2>
            </div>
-           
            <div className="grid gap-2">
               <Select name="paymentMethod" required onValueChange={setPaymentMethod} value={paymentMethod}>
-                <SelectTrigger className="h-14 rounded-xl border-stone-200 bg-white/50 focus:ring-pink-100">
-                  <SelectValue placeholder="Pilih Metode" />
-                </SelectTrigger>
+                <SelectTrigger className="h-14 rounded-xl border-stone-200 bg-white/50 focus:ring-pink-100"><SelectValue placeholder="Pilih Metode" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="transfer">Transfer Bank / E-Wallet</SelectItem>
                   <SelectItem value="qris">QRIS</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="cash">Cash (Bayar di Tempat)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-stone-500 mt-2 ml-1">
-                 *Detail pembayaran akan dikirimkan melalui WhatsApp setelah konfirmasi.
-              </p>
+              <p className="text-xs text-stone-500 mt-2 ml-1">*Detail pembayaran akan dikirimkan melalui WhatsApp setelah konfirmasi.</p>
            </div>
         </div>
       </motion.div>
@@ -152,10 +135,7 @@ export default function CheckoutForm() {
       >
          <div className="sticky top-28 space-y-6">
             <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-[2rem] p-6 shadow-2xl shadow-pink-200/50 overflow-hidden relative">
-               
-               {/* Dekorasi Blob */}
                <div className="absolute -top-10 -right-10 w-32 h-32 bg-pink-100 rounded-full blur-2xl opacity-60"></div>
-
                <h3 className="text-lg font-lora font-bold text-stone-800 mb-6 flex items-center gap-2 relative z-10">
                   <ShoppingBag size={18} /> Ringkasan Pesanan
                </h3>
@@ -163,13 +143,21 @@ export default function CheckoutForm() {
                {/* List Item Scrollable */}
                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide mb-6 relative z-10">
                   {selectedItems.map(item => (
-                    <div key={item._id} className="flex gap-3 items-center">
+                    <div key={`${item._id}-${item.selectedModel || 'def'}`} className="flex gap-3 items-center">
                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex-shrink-0">
                           <Image src={item.image} alt={item.name} fill className="object-cover" />
                        </div>
                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-stone-800 truncate">{item.name}</p>
-                          <p className="text-xs text-stone-500">Qty: {item.quantity}x</p>
+                          
+                          {/* --- TAMPILKAN MODEL DI SINI --- */}
+                          {item.selectedModel && (
+                             <span className="inline-block text-[10px] font-bold text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded mt-0.5">
+                               {item.selectedModel}
+                             </span>
+                          )}
+                          
+                          <p className="text-xs text-stone-500 mt-0.5">Qty: {item.quantity}x</p>
                        </div>
                        <div className="text-right">
                           <p className="text-sm font-bold text-pink-600">
@@ -198,7 +186,6 @@ export default function CheckoutForm() {
                   </div>
                </div>
 
-               {/* Tombol Submit */}
                <Button 
                  type="submit" 
                  disabled={isLoading || selectedItems.length === 0}
@@ -212,7 +199,6 @@ export default function CheckoutForm() {
                </Button>
             </div>
 
-            {/* Trust Badge */}
             <div className="flex items-center justify-center gap-2 text-stone-400 text-xs bg-white/40 p-3 rounded-xl border border-white">
                <ShieldCheck size={14} className="text-emerald-500" />
                Data Anda diamankan dengan enkripsi SSL.

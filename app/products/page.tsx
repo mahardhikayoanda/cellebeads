@@ -35,7 +35,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     itemsPerPage
   );
 
-  const categories = ['Semua', 'Gelang', 'Kalung', 'Cincin', 'Keychain', 'Strap Handphone', 'Jam Manik'];
+  const categories = ['Semua', 'Gelang', 'Kalung', 'Cincin', 'Keychain', 'Strap Handphone', 'Jam Manik', 'Request'];
 
   return (
     <div className="min-h-screen pb-20 relative text-stone-800 font-sans">

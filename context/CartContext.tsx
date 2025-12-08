@@ -1,4 +1,4 @@
-// File: context/CartContext.tsx (GANTI SEMUA ISINYA DENGAN INI)
+// File: context/CartContext.tsx
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -10,16 +10,17 @@ export interface ICartItem {
   image: string;
   quantity: number;
   selected: boolean; 
+  selectedModel?: string; 
 }
 
 interface CartContextType {
   cartItems: ICartItem[];
   selectedItems: ICartItem[]; 
   addToCart: (item: ICartItem) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  toggleCartItemSelection: (id: string) => void; 
-  clearCart: () => void; // <-- Ini yang error
+  removeFromCart: (id: string, model?: string) => void;
+  updateQuantity: (id: string, quantity: number, model?: string) => void;
+  toggleCartItemSelection: (id: string, model?: string) => void; 
+  clearCart: () => void; 
   getTotalPrice: () => number; 
   getTotalItems: () => number; 
 }
@@ -33,29 +34,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Error loading cart:', error);
-        localStorage.removeItem('cart');
-      }
+      try { setCartItems(JSON.parse(savedCart)); } catch (error) { localStorage.removeItem('cart'); }
     }
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('cart', JSON.stringify(cartItems));
-    }
+    if (isLoaded) localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems, isLoaded]);
 
   const addToCart = (item: ICartItem) => {
     setCartItems(prevCart => {
-      const existingItem = prevCart.find(i => i._id === item._id);
-      
+      const existingItem = prevCart.find(i => i._id === item._id && i.selectedModel === item.selectedModel);
       if (existingItem) {
         return prevCart.map(i =>
-          i._id === item._id
+          (i._id === item._id && i.selectedModel === item.selectedModel)
             ? { ...i, quantity: i.quantity + item.quantity, selected: true } 
             : i
         );
@@ -64,36 +57,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (id: string) => {
-    setCartItems(prevCart => prevCart.filter(item => item._id !== id));
+  const removeFromCart = (id: string, model?: string) => {
+    setCartItems(prevCart => prevCart.filter(item => !(item._id === id && item.selectedModel === model)));
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number, model?: string) => {
     if (quantity <= 0) {
-      removeFromCart(id);
+      removeFromCart(id, model);
       return;
     }
     setCartItems(prevCart =>
       prevCart.map(item =>
-        item._id === id ? { ...item, quantity } : item
+        (item._id === id && item.selectedModel === model) ? { ...item, quantity } : item
       )
     );
   };
 
-  const toggleCartItemSelection = (id: string) => {
+  const toggleCartItemSelection = (id: string, model?: string) => {
     setCartItems(prevCart =>
       prevCart.map(item =>
-        item._id === id ? { ...item, selected: !item.selected } : item
+        (item._id === id && item.selectedModel === model) ? { ...item, selected: !item.selected } : item
       )
     );
   };
 
-  // --- INI FUNGSI YANG HILANG DARI FILE LOKAL ANDA ---
   const clearCart = () => {
     setCartItems([]);
-    localStorage.removeItem('cartItems'); // Hapus juga dari localStorage
+    localStorage.removeItem('cart');
   };
-  // -----------------------------------------------------
 
   const getTotalPrice = () => {
     return cartItems
@@ -109,17 +100,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <CartContext.Provider
-      value={{
-        cartItems,
-        selectedItems, 
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        toggleCartItemSelection, 
-        clearCart, // <-- Sekarang 'clearCart' sudah terdefinisi
-        getTotalPrice,
-        getTotalItems,
-      }}
+      value={{ cartItems, selectedItems, addToCart, removeFromCart, updateQuantity, toggleCartItemSelection, clearCart, getTotalPrice, getTotalItems }}
     >
       {children}
     </CartContext.Provider>
@@ -128,8 +109,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart harus digunakan di dalam CartProvider');
-  }
+  if (context === undefined) throw new Error('useCart must be used within CartProvider');
   return context;
 };

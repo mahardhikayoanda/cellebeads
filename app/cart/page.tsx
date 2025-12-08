@@ -7,12 +7,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Trash2, ArrowRight, ShoppingBag, Minus, Plus, Sparkles } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- BACKGROUND ANIMASI (Sama seperti halaman lain) ---
+// --- BACKGROUND ANIMASI ---
 const AnimatedBackground = () => (
   <div className="fixed inset-0 -z-10 overflow-hidden bg-[#fff0f5]">
     <div className="absolute top-0 left-[-10%] w-[500px] h-[500px] bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
@@ -34,6 +33,8 @@ export default function CartPage() {
 
   const total = getTotalPrice ? getTotalPrice() : 0; 
 
+  const handleCheckout = () => router.push('/checkout');
+
   if (!isMounted) { 
     return (
         <div className="flex h-screen items-center justify-center bg-pink-50/50">
@@ -44,8 +45,6 @@ export default function CartPage() {
         </div>
     );
   }
-
-  const handleCheckout = () => router.push('/checkout');
 
   return (
     <div className="min-h-screen pb-20 relative font-sans text-stone-800">
@@ -65,7 +64,7 @@ export default function CartPage() {
         </div>
         
         {cartItems.length === 0 ? (
-          // --- EMPTY STATE YANG CANTIK ---
+          // --- EMPTY STATE ---
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -91,7 +90,8 @@ export default function CartPage() {
               <AnimatePresence mode="popLayout">
                 {cartItems.map((item) => (
                   <motion.div 
-                    key={item._id} 
+                    // PENTING: Key harus unik kombinasi ID + Model
+                    key={`${item._id}-${item.selectedModel || 'default'}`}
                     layout
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -102,19 +102,27 @@ export default function CartPage() {
                     {/* Checkbox & Gambar */}
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <Checkbox
-                            id={`select-${item._id}`}
+                            id={`select-${item._id}-${item.selectedModel}`}
                             checked={item.selected}
-                            onCheckedChange={() => toggleCartItemSelection(item._id)}
+                            // Pass model ke toggle selection
+                            onCheckedChange={() => toggleCartItemSelection(item._id, item.selectedModel)}
                             className="w-5 h-5 border-2 border-stone-300 data-[state=checked]:bg-pink-500 data-[state=checked]:border-pink-500 rounded-md transition-all"
                         />
                         <div className="relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border border-stone-100 shadow-inner bg-stone-50">
                            <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500"/>
                         </div>
-                        {/* Mobile Title (visible only on small screens) */}
+                        
+                        {/* Mobile View */}
                         <div className="sm:hidden flex-1">
                             <Link href={`/products/${item._id}`} className="font-bold text-stone-800 line-clamp-2 text-sm leading-tight mb-1">
                                 {item.name}
                             </Link>
+                            {/* Model Badge Mobile */}
+                            {item.selectedModel && (
+                                <span className="inline-block text-[10px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded mb-1">
+                                  {item.selectedModel}
+                                </span>
+                            )}
                             <p className="text-pink-600 font-bold text-sm">Rp {item.price.toLocaleString('id-ID')}</p>
                         </div>
                     </div>
@@ -124,7 +132,18 @@ export default function CartPage() {
                       <Link href={`/products/${item._id}`} className="font-lora font-bold text-stone-800 text-lg hover:text-pink-600 transition-colors line-clamp-1">
                         {item.name}
                       </Link>
-                      <p className="text-stone-500 text-xs uppercase tracking-wider font-bold mt-1 mb-2">Harga Satuan</p>
+                      
+                      {/* --- TAMPILKAN MODEL (DESKTOP) --- */}
+                      {item.selectedModel ? (
+                        <div className="mt-1 mb-2">
+                           <span className="inline-flex items-center text-xs font-bold text-pink-600 bg-pink-50 px-2 py-1 rounded border border-pink-100">
+                              Model: {item.selectedModel}
+                           </span>
+                        </div>
+                      ) : (
+                        <p className="text-stone-500 text-xs uppercase tracking-wider font-bold mt-1 mb-2">Harga Satuan</p>
+                      )}
+                      
                       <p className="text-pink-600 font-bold">Rp {item.price.toLocaleString('id-ID')}</p>
                     </div>
                     
@@ -134,7 +153,8 @@ export default function CartPage() {
                           <Button 
                             variant="ghost" size="icon" 
                             className="h-8 w-8 rounded-lg hover:bg-white hover:text-pink-600 hover:shadow-sm"
-                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                            // Pass model ke updateQuantity
+                            onClick={() => updateQuantity(item._id, item.quantity - 1, item.selectedModel)}
                           >
                              <Minus size={14} />
                           </Button>
@@ -142,7 +162,8 @@ export default function CartPage() {
                           <Button 
                             variant="ghost" size="icon" 
                             className="h-8 w-8 rounded-lg hover:bg-white hover:text-pink-600 hover:shadow-sm"
-                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                            // Pass model ke updateQuantity
+                            onClick={() => updateQuantity(item._id, item.quantity + 1, item.selectedModel)}
                           >
                              <Plus size={14} />
                           </Button>
@@ -151,7 +172,8 @@ export default function CartPage() {
                        <Button 
                           variant="ghost" size="icon" 
                           className="h-8 w-8 text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" 
-                          onClick={() => removeFromCart(item._id)}
+                          // Pass model ke removeFromCart
+                          onClick={() => removeFromCart(item._id, item.selectedModel)}
                        >
                           <Trash2 size={16} /> 
                        </Button>
@@ -217,6 +239,12 @@ export default function CartPage() {
                         Kosongkan Keranjang
                         </Button>
                     </div>
+                  </div>
+
+                  {/* Info Tambahan */}
+                  <div className="mt-6 flex items-center justify-center gap-2 text-stone-400 text-xs font-medium">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                      Jaminan Pembayaran Aman & Terpercaya
                   </div>
               </div>
             </motion.div>
