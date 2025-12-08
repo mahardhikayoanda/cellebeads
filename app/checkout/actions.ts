@@ -27,7 +27,7 @@ export async function createOrder(formData: FormData, cartItems: ICartItem[]) {
   try {
     const { name, address, phone, paymentMethod } = Object.fromEntries(formData);
     
-    // Hitung total harga di server untuk keamanan
+    // Hitung total harga di server
     const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
 
     const orderItems = cartItems.map(item => ({
@@ -37,7 +37,7 @@ export async function createOrder(formData: FormData, cartItems: ICartItem[]) {
       price: item.price,
     }));
     
-    // 2. Simpan Order ke Database
+    // 2. Simpan Order
     const order = new Order({
       user: session.user.id, 
       items: orderItems,
@@ -53,32 +53,55 @@ export async function createOrder(formData: FormData, cartItems: ICartItem[]) {
 
     await order.save();
 
-    // 3. Format Pesan WhatsApp (UPGRADE: Lebih Rapi & Profesional)
-    const separator = "--------------------------------";
-    let waMessage = `Halo Admin Cellebeads! 👋\nSaya ingin memesan produk berikut:\n\n`;
+    // 3. Format Pesan WhatsApp (VERSI RAPI & LURUS)
+    const paymentLabelMap: Record<string, string> = {
+        'transfer': '🏦 Transfer Bank / E-Wallet',
+        'qris': '📱 QRIS',
+        'cash': '💵 Cash'
+    };
+    const paymentDisplay = paymentLabelMap[paymentMethod as string] || paymentMethod;
+
+    const shortOrderId = order._id.toString().slice(-6).toUpperCase();
+    const date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    const line = `━━━━━━━━━━━━━━━━`;
     
-    cartItems.forEach((item, index) => {
-      waMessage += `${index + 1}. *${item.name}*\n`;
-      waMessage += `   Qty: ${item.qty} x Rp ${item.price.toLocaleString('id-ID')}\n`;
-      waMessage += `   Subtotal: Rp ${(item.price * item.qty).toLocaleString('id-ID')}\n\n`;
+    // --- PENYUSUNAN PESAN ---
+    let waMessage = `🌸 *PESANAN BARU* 🌸\n`;
+    waMessage += `${line}\n`;
+    waMessage += `🆔 ID: *#${shortOrderId}*\n`;
+    waMessage += `📅 Tgl: ${date}\n`;
+    waMessage += `${line}\n\n`;
+
+    waMessage += `👤 *DATA PEMBELI*\n`;
+    waMessage += `• Nama: ${name}\n`;
+    waMessage += `• WA: ${phone}\n`;
+    waMessage += `• Alamat: ${address}\n\n`; // Menambahkan spasi agar alamat agak masuk sedikit
+
+    waMessage += `🛒 *DAFTAR ITEM*\n`;
+    cartItems.forEach((item) => {
+      const subtotal = item.price * item.qty;
+      // UBAH DISINI: Gunakan bullet '•' yang sama dengan data pembeli
+      // Format lurus ke bawah:
+      // • Nama Barang
+      //   Qty x Harga = Total
+      waMessage += `• ${item.name}\n`;
+      waMessage += `  ${item.qty} x Rp ${item.price.toLocaleString('id-ID')} = Rp ${subtotal.toLocaleString('id-ID')}\n`;
     });
 
-    waMessage += `${separator}\n`;
-    waMessage += `*TOTAL BELANJA: Rp ${totalPrice.toLocaleString('id-ID')}*\n`;
-    waMessage += `${separator}\n\n`;
+    waMessage += `\n${line}\n`;
+    waMessage += `💰 *TOTAL: Rp ${totalPrice.toLocaleString('id-ID')}*\n`;
+    waMessage += `${line}\n\n`;
     
-    waMessage += `📋 *DATA PENGIRIMAN*\n`;
-    waMessage += `👤 Nama: ${name}\n`;
-    waMessage += `🏠 Alamat: ${address}\n`;
-    waMessage += `📞 No. HP: ${phone}\n`;
-    waMessage += `💳 Pembayaran: ${paymentMethod === 'transfer' ? 'Transfer Bank' : 'COD (Bayar di Tempat)'}\n\n`;
-    
-    waMessage += `Mohon segera diproses ya, Terima kasih! ✨`;
+    waMessage += `💳 *PEMBAYARAN:*\n${paymentDisplay}\n\n`;
+
+    waMessage += `Mohon diproses ya kak. Terima kasih! ✨`;
+    // -------------------------
 
     const adminNumber = process.env.ADMIN_WA_NUMBER;
     const waUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(waMessage)}`;
 
-    // 4. Refresh halaman terkait
+    // 4. Refresh halaman
     revalidatePath('/dashboard/my-orders');
     revalidatePath('/admin/orders'); 
 

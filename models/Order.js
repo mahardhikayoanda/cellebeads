@@ -16,14 +16,14 @@ const OrderSchema = new Schema({
     name: { type: String, required: true },
     address: { type: String, required: true },
     phone: { type: String, required: true },
-    paymentMethod: { type: String, enum: ['cash', 'transfer'], required: true },
+    paymentMethod: { type: String, enum: ['cash', 'transfer', 'qris'], required: true },
   },
   status: {
     type: String,
     enum: ['pending', 'processed', 'shipped', 'delivered', 'cancelled'],
     default: 'pending',
   },
-  isPaid: { type: Boolean, default: false }, 
+  isPaid: { type: Boolean, default: false },
   deliveredAt: { type: Date },
 }, { timestamps: true });
 

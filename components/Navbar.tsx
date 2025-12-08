@@ -7,9 +7,9 @@ import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, User, LogOut, Menu, Package, Search, Heart, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
@@ -24,34 +24,36 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const { getTotalItems } = useCart();
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
   
+  const [isVisible, setIsVisible] = useState(true); 
+  const [scrolled, setScrolled] = useState(false); 
+  
+  const { scrollY } = useScroll();
   const totalItems = getTotalItems ? getTotalItems() : 0;
-  
-  // Deteksi Scroll untuk Efek Glass
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
-  // --- LOGIKA SEMBUNYIKAN NAVBAR DI PANEL ADMIN ---
+  useMotionValueEvent(scrollY, "change", (current) => {
+    const previous = scrollY.getPrevious() || 0;
+    const diff = current - previous;
+
+    setScrolled(current > 20);
+
+    if (current < 20) {
+      setIsVisible(true);
+    } else if (diff > 0 && current > 100) {
+      setIsVisible(false);
+    } else if (diff < 0) {
+      setIsVisible(true);
+    }
+  });
+
   if (pathname?.startsWith('/admin')) return null;
 
-  // Data User
-  const userRole = session?.user?.role;
   const userName = session?.user?.name || "Tamu";
-  const userImage = session?.user?.image;
-
-  // Helper Initials
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
 
-  // Menu Links
   const links = [
     { name: 'Beranda', href: '/' },
     { name: 'Koleksi', href: '/products' },
@@ -60,13 +62,13 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+      initial={{ y: 0 }}
+      animate={{ y: isVisible ? 0 : "-100%" }} 
+      transition={{ duration: 0.3, ease: "easeInOut" }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 md:px-8 py-4",
+        "fixed top-0 left-0 right-0 z-50 px-4 md:px-8 transition-all duration-300",
         scrolled 
-          ? "bg-white/70 backdrop-blur-xl shadow-lg shadow-pink-100/20 py-3" 
+          ? "bg-white/80 backdrop-blur-xl shadow-lg shadow-pink-100/50 py-3" 
           : "bg-transparent py-5"
       )}
     >
@@ -75,13 +77,7 @@ export default function Navbar() {
         {/* --- 1. LOGO & BRAND (KIRI) --- */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:scale-105 transition-transform duration-300">
-            {/* Logo Image dari Public Folder */}
-            <Image 
-              src="/logo_celle.jpg" 
-              alt="Cellebeads Logo" 
-              fill 
-              className="object-cover"
-            />
+            <Image src="/logo_celle.jpg" alt="Cellebeads Logo" fill className="object-cover" />
           </div>
           <div className="flex flex-col">
             <span className={cn(
@@ -118,15 +114,10 @@ export default function Navbar() {
         </div>
 
         {/* --- 3. ACTIONS (KANAN) --- */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-3">
           
-          {/* Search Button (Icon Only) */}
-          <Button variant="ghost" size="icon" className="rounded-full hover:bg-pink-50 hover:text-pink-600 text-stone-600">
-             <Search className="w-5 h-5" />
-          </Button>
-
-          {/* Cart Button */}
-          {userRole !== 'admin' && (
+          {/* A. Tombol Cart */}
+          {(!session || (session.user as any).role !== 'admin') && (
             <Link href="/cart">
               <div className="relative group/cart">
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-pink-50 hover:text-pink-600 text-stone-600 transition-all">
@@ -146,18 +137,31 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Profile / Login */}
+          {/* B. Tombol 'Pesanan Saya' (NEW: Terletak di sini, khusus customer) */}
+          {session && (session.user as any).role === 'customer' && (
+             <Link href="/dashboard/my-orders">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "rounded-full hover:bg-pink-50 hover:text-pink-600 transition-all",
+                    pathname.startsWith('/dashboard/my-orders') ? "text-pink-600 bg-pink-50" : "text-stone-600"
+                  )}
+                  title="Pesanan Saya"
+                >
+                  <Package className="w-5 h-5" />
+                </Button>
+             </Link>
+          )}
+
+          {/* C. Profile Dropdown */}
           {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="rounded-full pl-2 pr-4 py-1 h-auto border border-transparent hover:border-pink-100 hover:bg-pink-50/50 gap-2 transition-all">
+                <Button variant="ghost" className="rounded-full pl-2 pr-4 py-1 h-auto border border-transparent hover:border-pink-100 hover:bg-pink-50/50 gap-2 transition-all ml-1">
                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-300 to-purple-300 p-[2px] shadow-sm">
                       <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                        {userImage ? (
-                          <Image src={userImage} alt="User" width={32} height={32} className="object-cover" />
-                        ) : (
                           <span className="font-lora font-bold text-stone-700 text-xs">{getInitials(userName)}</span>
-                        )}
                       </div>
                    </div>
                    <span className="hidden md:inline text-sm font-medium text-stone-700 max-w-[80px] truncate">
@@ -165,22 +169,22 @@ export default function Navbar() {
                    </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-white/60 bg-white/80 backdrop-blur-xl shadow-xl">
+              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-white/60 bg-white/95 backdrop-blur-xl shadow-xl">
                 <DropdownMenuLabel className="font-normal px-3 py-2">
                   <p className="font-bold text-stone-800">{userName}</p>
                   <p className="text-xs text-stone-500 truncate">{session.user?.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-pink-100/50" />
                 
-                {userRole === 'customer' && (
-                  <>
-                    <DropdownMenuItem asChild className="rounded-xl cursor-pointer focus:bg-pink-50 focus:text-pink-700">
-                      <Link href="/profile" className="flex items-center gap-2"><User size={16}/> Profil Saya</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="rounded-xl cursor-pointer focus:bg-pink-50 focus:text-pink-700">
-                      <Link href="/dashboard/my-orders" className="flex items-center gap-2"><Package size={16}/> Pesanan Saya</Link>
-                    </DropdownMenuItem>
-                  </>
+                {/* MENU CUSTOMER - Pesanan Saya & Profil Saya dihapus dari sini */}
+                {/* Karena sudah ada di Navbar (ikon Package) & User Icon (klik avatar itu sendiri) */}
+                {(session.user as any).role === 'customer' && (
+                   <>
+                      {/* Opsional: Tambahkan kembali link Profil jika ingin eksplisit */}
+                      <DropdownMenuItem asChild className="rounded-xl cursor-pointer focus:bg-pink-50 focus:text-pink-700">
+                        <Link href="/profile" className="flex items-center gap-2"><User size={16}/> Profil Saya</Link>
+                      </DropdownMenuItem>
+                   </>
                 )}
                 
                 <DropdownMenuSeparator className="bg-pink-100/50" />
@@ -193,13 +197,13 @@ export default function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild size="sm" className="rounded-full bg-stone-900 hover:bg-pink-600 text-white font-bold px-6 shadow-md transition-all hover:-translate-y-0.5">
+            <Button asChild size="sm" className="rounded-full bg-stone-900 hover:bg-pink-600 text-white font-bold px-6 shadow-md transition-all hover:-translate-y-0.5 ml-2">
               <Link href="/login">Masuk</Link>
             </Button>
           )}
 
           {/* Mobile Menu Trigger */}
-          <div className="md:hidden">
+          <div className="md:hidden ml-1">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full text-stone-600">
@@ -235,21 +239,21 @@ export default function Navbar() {
                           {link.name}
                         </Link>
                       ))}
-                   </div>
-
-                   <div className="p-6 border-t border-pink-50 bg-pink-50/30">
-                      {!session ? (
-                         <Button asChild className="w-full bg-stone-900 text-white rounded-xl h-12 font-bold">
-                           <Link href="/login">Masuk / Daftar</Link>
-                         </Button>
-                      ) : (
-                         <Button 
-                           onClick={() => signOut({ callbackUrl: '/' })}
-                           variant="outline" 
-                           className="w-full border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl h-12 font-bold"
+                      
+                      {/* Mobile: Link Pesanan Saya */}
+                      {session && (session.user as any).role === 'customer' && (
+                         <Link 
+                           href="/dashboard/my-orders"
+                           className={cn(
+                             "flex items-center gap-4 px-4 py-3 rounded-xl text-lg font-medium transition-all",
+                             pathname.startsWith('/dashboard/my-orders')
+                               ? "bg-pink-50 text-pink-600 shadow-sm" 
+                               : "text-stone-600 hover:bg-stone-50"
+                           )}
                          >
-                           Keluar
-                         </Button>
+                           <Package size={20} />
+                           Pesanan Saya
+                         </Link>
                       )}
                    </div>
                 </div>
