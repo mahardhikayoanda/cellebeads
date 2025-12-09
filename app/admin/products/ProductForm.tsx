@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, DollarSign, Layers, AlignLeft, Image as ImageIcon, UploadCloud, Loader2, Plus, Sparkles, X, Tag } from 'lucide-react';
+import { Package, DollarSign, Layers, AlignLeft, Image as ImageIcon, UploadCloud, Loader2, Plus, Sparkles, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -18,14 +18,59 @@ export default function ProductForm() {
   const formRef = useRef<HTMLFormElement>(null);
   
   const [category, setCategory] = useState(""); 
-  const [displayPrice, setDisplayPrice] = useState(""); 
-  const [rangePriceDisplay, setRangePriceDisplay] = useState(""); 
+  
+  // --- STATE HARGA PINTAR ---
+  const [priceInput, setPriceInput] = useState(""); 
+  
   const [fileName, setFileName] = useState<string>(""); 
 
-  // --- STATE MODELS ---
+  // State Models
   const [models, setModels] = useState<IModel[]>([]);
   const [modelName, setModelName] = useState("");
   const [modelPrice, setModelPrice] = useState("");
+
+  // Helper Format Angka
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('id-ID').format(num);
+  };
+
+  // --- HANDLER HARGA UTAMA (FIXED: Auto Format Rentang) ---
+  const handleMainPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    
+    // Cek apakah mode rentang (ada tanda strip)
+    if (val.includes('-')) {
+        // Pecah string berdasarkan strip
+        const parts = val.split('-');
+        
+        // Ambil angka dari bagian kiri (Awal)
+        const startRaw = parts[0].replace(/[^0-9]/g, '');
+        // Ambil angka dari bagian kanan (Akhir) - gabungkan sisa array jika user ketik - lagi
+        const endRaw = parts.slice(1).join('').replace(/[^0-9]/g, ''); 
+
+        const startFmt = startRaw ? formatNumber(Number(startRaw)) : '';
+        const endFmt = endRaw ? formatNumber(Number(endRaw)) : '';
+        
+        // Gabungkan kembali: "50.000 - 100.000"
+        // Kita paksa format " A - B " agar rapi
+        setPriceInput(`${startFmt} - ${endFmt}`);
+    } else {
+        // Mode Harga Tetap
+        const rawNum = val.replace(/[^0-9]/g, '');
+        if (!rawNum) {
+            setPriceInput("");
+        } else {
+            setPriceInput(formatNumber(Number(rawNum)));
+        }
+    }
+  };
+
+  // Handler Harga Varian (Selalu Angka)
+  const handleVariantPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    if (!val) setModelPrice("");
+    else setModelPrice(formatNumber(Number(val)));
+  };
 
   const addModel = () => {
     if (modelName.trim() && modelPrice.trim()) {
@@ -33,6 +78,8 @@ export default function ProductForm() {
       setModels([...models, { name: modelName.trim(), price: priceNum }]);
       setModelName("");
       setModelPrice("");
+    } else {
+        toast.error("Nama varian dan harga harus diisi.");
     }
   };
 
@@ -40,19 +87,6 @@ export default function ProductForm() {
     setModels(models.filter((_, i) => i !== index));
   };
   
-  const formatRupiah = (value: string) => {
-    const numberString = value.replace(/[^0-9]/g, '');
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0,
-    }).format(Number(numberString));
-  };
-
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, setter: any) => {
-    const val = e.target.value;
-    if(!val) { setter(""); return; }
-    setter(formatRupiah(val));
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const count = e.target.files.length;
@@ -72,12 +106,30 @@ export default function ProductForm() {
     setIsLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
-      const rawPrice = displayPrice.replace(/[^0-9]/g, '');
-      formData.set('price', rawPrice); 
-      formData.set('category', category); 
       
+      // --- LOGIKA SMART SUBMIT ---
+      const isRange = priceInput.includes('-');
+      
+      let finalPrice = 0;
+      let finalDisplayPrice = "";
+
+      if (isRange) {
+         // KASUS RENTANG
+         finalDisplayPrice = priceInput; // Simpan teks "50.000 - 100.000"
+         // Ambil angka pertama untuk sorting database
+         // Kita ambil bagian sebelum strip, bersihkan titik
+         const cleanFirstNum = priceInput.split('-')[0].replace(/[^0-9]/g, '');
+         if(cleanFirstNum) finalPrice = Number(cleanFirstNum);
+      } else {
+         // KASUS TETAP
+         finalPrice = Number(priceInput.replace(/[^0-9]/g, ''));
+      }
+
+      formData.set('price', finalPrice.toString());
+      formData.set('displayPrice', finalDisplayPrice);
+      
+      formData.set('category', category); 
       formData.append('models', JSON.stringify(models));
-      formData.append('displayPrice', rangePriceDisplay); 
 
       const result = await createProduct(formData);
 
@@ -85,8 +137,7 @@ export default function ProductForm() {
         toast.success("Produk berhasil ditambahkan!");
         formRef.current?.reset();
         setCategory(""); 
-        setDisplayPrice(""); 
-        setRangePriceDisplay("");
+        setPriceInput(""); 
         setFileName("");
         setModels([]); 
       } else {
@@ -141,7 +192,7 @@ export default function ProductForm() {
             
             <div className="space-y-2.5">
               <Label className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2"><AlignLeft size={14} /> Deskripsi</Label>
-              <Textarea name="description" placeholder="Jelaskan detail produk..." required className="min-h-[120px] bg-stone-50/50 rounded-xl" />
+              <Textarea name="description" placeholder="Jelaskan detail produk..." required className="min-h-[120px] bg-stone-50/50 resize-none rounded-xl" />
             </div>
 
             {/* --- INPUT VARIAN MODEL --- */}
@@ -155,13 +206,13 @@ export default function ProductForm() {
                     placeholder="Nama Varian (Contoh: Model A)" 
                     value={modelName}
                     onChange={(e) => setModelName(e.target.value)}
-                    className="h-10 bg-white flex-grow"
+                    className="h-10 bg-white flex-grow font-normal"
                   />
                   <Input 
                     placeholder="Harga Varian (Rp)" 
                     value={modelPrice}
-                    onChange={(e) => handlePriceChange(e, setModelPrice)}
-                    className="h-10 bg-white md:w-40"
+                    onChange={handleVariantPriceChange}
+                    className="h-10 bg-white md:w-40 font-normal"
                   />
                   <Button type="button" onClick={addModel} size="sm" variant="outline" className="border-pink-200 text-pink-600 hover:bg-pink-50 h-10">
                     <Plus size={16} className="mr-1"/> Tambah
@@ -174,41 +225,40 @@ export default function ProductForm() {
                        <div key={idx} className="flex justify-between items-center bg-white border border-pink-100 text-stone-600 px-4 py-2 rounded-lg text-sm shadow-sm">
                           <div className="flex gap-2">
                              <span className="font-bold text-stone-800">{model.name}</span>
-                             <span className="text-pink-600">Rp {model.price.toLocaleString('id-ID')}</span>
+                             <span className="text-pink-600">Rp {formatNumber(model.price)}</span>
                           </div>
                           <button type="button" onClick={() => removeModel(idx)} className="text-stone-400 hover:text-red-500"><X size={14} /></button>
                        </div>
                     ))}
                  </div>
                )}
+               <p className="text-[10px] text-stone-400">Jika ditambahkan, pelanggan wajib memilih varian saat checkout.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* --- INPUT HARGA PINTAR (Satu Kolom) --- */}
               <div className="space-y-2.5">
-                <Label className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2"><DollarSign size={14} /> Harga Dasar</Label>
-                <Input name="price" type="text" placeholder="Rp 0" value={displayPrice} onChange={(e) => handlePriceChange(e, setDisplayPrice)} required className="h-12 bg-stone-50/50 rounded-xl" />
+                <Label className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2"><DollarSign size={14} /> Harga / Rentang</Label>
+                <Input 
+                    name="priceDisplay" 
+                    type="text" 
+                    placeholder="Contoh: 50.000 atau 50.000 - 100.000" 
+                    value={priceInput}
+                    onChange={handleMainPriceChange} 
+                    required 
+                    className="h-12 pl-4 bg-stone-50/50 rounded-xl text-stone-800 font-normal" 
+                />
+                <p className="text-[10px] text-stone-400 ml-1">
+                   Otomatis format Rupiah. Ketik tanda minus (-) untuk membuat rentang harga.
+                </p>
               </div>
+
               <div className="space-y-2.5">
                 <Label className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2"><Package size={14} /> Stok Total</Label>
-                <Input name="stock" type="number" placeholder="0" required className="h-12 bg-stone-50/50 rounded-xl" />
+                <Input name="stock" type="number" placeholder="0" required className="h-12 bg-stone-50/50 rounded-xl font-normal" />
               </div>
             </div>
-
-            {/* --- INPUT RENTANG HARGA (KHUSUS REQUEST) --- */}
-            {category === 'Request' && (
-                <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2">
-                    <Label className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2"><Tag size={14} /> Teks Rentang Harga (Opsional)</Label>
-                    <Input 
-                        name="rangeDisplay" 
-                        placeholder="Contoh: Rp 50.000 - Rp 100.000" 
-                        value={rangePriceDisplay}
-                        onChange={(e) => setRangePriceDisplay(e.target.value)}
-                        className="h-12 bg-stone-50/50 rounded-xl" 
-                    />
-                </div>
-            )}
             
-            {/* Upload Gambar (Sama seperti sebelumnya) */}
             <div className="space-y-2.5">
               <Label className="text-stone-600 font-bold text-xs uppercase tracking-wide flex items-center gap-2"><ImageIcon size={14} /> Foto Produk</Label>
               <div className="relative group">

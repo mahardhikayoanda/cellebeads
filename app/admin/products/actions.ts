@@ -6,11 +6,13 @@ import Product from '@/models/Product';
 import { revalidatePath } from 'next/cache';
 import { put, del } from '@vercel/blob';
 
+// Interface Model Varian
 export interface IModel {
   name: string;
   price: number;
 }
 
+// Interface Produk
 export interface IProduct {
   _id: string;
   name: string;
@@ -19,8 +21,8 @@ export interface IProduct {
   stock: number;
   images: string[];
   category: string;
-  models?: IModel[]; 
-  displayPrice?: string; 
+  models?: IModel[];      // <--- Baru: Array Model dengan Harga
+  displayPrice?: string;  // <--- Baru: Teks Rentang Harga
 }
 
 export interface PaginatedResult {
@@ -30,7 +32,7 @@ export interface PaginatedResult {
   totalProducts: number;
 }
 
-// 1. CREATE
+// 1. CREATE PRODUCT
 export async function createProduct(formData: FormData) {
   await dbConnect();
   
@@ -46,12 +48,14 @@ export async function createProduct(formData: FormData) {
   const category = formData.get('category') as string; 
   const displayPrice = formData.get('displayPrice') as string;
 
-  // --- AMBIL MODELS ---
+  // --- AMBIL MODELS (Array of Objects) ---
   const modelsJson = formData.get('models') as string;
   let models: IModel[] = [];
   try {
      if (modelsJson) models = JSON.parse(modelsJson);
-  } catch (e) {}
+  } catch (e) {
+     console.error("Error parsing models", e);
+  }
 
   try {
     const uploadPromises = imageFiles.map(file => 
@@ -78,7 +82,7 @@ export async function createProduct(formData: FormData) {
   }
 }
 
-// 2. READ ALL
+// 2. READ ALL (Admin/Home)
 export async function getProducts(categoryFilter?: string): Promise<IProduct[]> {
   await dbConnect();
   try {
@@ -91,7 +95,7 @@ export async function getProducts(categoryFilter?: string): Promise<IProduct[]> 
   } catch (error) { return []; }
 }
 
-// 3. READ PAGINATED
+// 3. READ PAGINATED (Katalog)
 export async function getPaginatedProducts(
   category: string = 'Semua', 
   page: number = 1, 
@@ -123,7 +127,7 @@ export async function getPaginatedProducts(
   }
 }
 
-// 4. READ BY ID
+// 4. READ BY ID (Detail)
 export async function getProductById(productId: string): Promise<IProduct | null> {
   await dbConnect();
   try {
@@ -135,7 +139,7 @@ export async function getProductById(productId: string): Promise<IProduct | null
   } catch (error) { return null; }
 }
 
-// 5. UPDATE
+// 5. UPDATE PRODUCT
 export async function updateProduct(formData: FormData) {
   await dbConnect();
 
@@ -145,6 +149,7 @@ export async function updateProduct(formData: FormData) {
     const description = formData.get('description') as string;
     const price = Number(formData.get('price'));
     const stock = Number(formData.get('stock'));
+    const category = formData.get('category') as string; // Jangan lupa update kategori
     const displayPrice = formData.get('displayPrice') as string;
     
     // --- AMBIL MODELS ---
@@ -170,7 +175,7 @@ export async function updateProduct(formData: FormData) {
     }
 
     await Product.findByIdAndUpdate(id, {
-      name, description, price, stock, 
+      name, description, price, stock, category,
       images: finalImages,
       models: models, 
       displayPrice: displayPrice || undefined
@@ -187,7 +192,7 @@ export async function updateProduct(formData: FormData) {
   }
 }
 
-// 6. DELETE
+// 6. DELETE PRODUCT
 export async function deleteProduct(productId: string) {
   await dbConnect();
   try {

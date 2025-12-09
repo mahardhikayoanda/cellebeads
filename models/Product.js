@@ -4,24 +4,24 @@ import mongoose, { Schema, model } from 'mongoose';
 const ProductSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  price: { type: Number, required: true }, // Harga dasar / fallback
+  
+  // --- UPDATE: Harga dasar jadi default 0 (tidak wajib diisi manual jika ada displayPrice) ---
+  price: { type: Number, default: 0 }, 
+  
   stock: { type: Number, required: true, default: 0 },
   images: { type: [String], required: true }, 
   category: { 
     type: String, 
     required: true, 
-    // Menambahkan 'Request' ke dalam enum
     enum: ['Gelang', 'Kalung', 'Cincin', 'Keychain', 'Strap Handphone', 'Jam Manik', 'Request'] 
   },
   
-  // --- VARIAN MODEL (Nama & Harga) ---
   models: [{
     name: { type: String, required: true },
     price: { type: Number, required: true }
   }],
   
-  // --- TEKS RENTANG HARGA (Opsional, untuk tampilan katalog) ---
-  displayPrice: { type: String }, 
+  displayPrice: { type: String }, // Menyimpan teks rentang harga
 
 }, { timestamps: true });
 
