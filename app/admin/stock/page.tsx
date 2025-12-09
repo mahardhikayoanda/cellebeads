@@ -23,19 +23,13 @@ export default async function StockPage() {
             </div>
         </div>
         
-        {/* Statistik Mini (Style dipercantik sedikit agar match) */}
+        {/* Statistik Mini - Bagian Stok Menipis DIHAPUS */}
         <div className="bg-white/80 backdrop-blur-md border border-stone-100 shadow-sm px-6 py-3 rounded-2xl flex gap-6">
            <div className="text-center">
               <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Total Item</p>
               <p className="text-xl font-bold text-stone-800">{products.length}</p>
            </div>
-           <div className="w-px bg-stone-200" />
-           <div className="text-center">
-              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Stok Menipis</p>
-              <p className="text-xl font-bold text-rose-500">
-                {products.filter(p => p.stock < 5).length}
-              </p>
-           </div>
+           {/* Divider dan Stok Menipis dihapus dari sini */}
         </div>
       </div>
       {/* ------------------- */}

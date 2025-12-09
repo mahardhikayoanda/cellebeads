@@ -22,11 +22,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { data: session } = useSession();
 
+  // --- PEMBARUAN DI SINI (Menghapus 'Profil Saya') ---
+  // Sesuai gambar 2 yang Anda lingkari
   const navLinks = [
     { href: '/dashboard', label: 'Ringkasan', icon: LayoutDashboard, exact: true },
     { href: '/dashboard/my-orders', label: 'Pesanan Saya', icon: Package },
-    { href: '/profile', label: 'Profil Saya', icon: User },
+    // Item 'Profil Saya' dihapus dari sini
   ];
+  // -------------------------------------------------
 
   return (
     <div className="flex min-h-screen text-stone-800 font-sans">

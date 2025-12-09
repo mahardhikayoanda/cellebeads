@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  // 1. Ambil status sesi (status)
+  const { data: session, status } = useSession();
   const { getTotalItems } = useCart();
   const pathname = usePathname();
   
@@ -49,7 +50,16 @@ export default function Navbar() {
     }
   });
 
+  // --- LOGIKA SEMBUNYIKAN NAVBAR ---
+  // 1. Sembunyikan di halaman admin (sudah ada)
   if (pathname?.startsWith('/admin')) return null;
+
+  // 2. [BARU] Sembunyikan di Halaman Utama (Landing) jika belum login
+  // Sesuai permintaan gambar (lingkaran merah)
+  if (pathname === '/' && status === 'unauthenticated') {
+    return null;
+  }
+  // ---------------------------------
 
   const userName = session?.user?.name || "Tamu";
   const getInitials = (name: string) => name.charAt(0).toUpperCase();

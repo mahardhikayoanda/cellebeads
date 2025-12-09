@@ -5,9 +5,10 @@ import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+// Menambahkan import 'PenTool' untuk ikon Request
 import { 
   Search, Sparkles, Gem, CircleDashed, Key, 
-  Smartphone, Watch, ArrowRight, ShoppingBag, Heart 
+  Smartphone, Watch, ArrowRight, ShoppingBag, Heart, PenTool 
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,6 @@ import ProductGrid from '@/app/products/ProductGrid';
 import LandingView from '@/components/LandingView'; 
 import { Loader2 } from 'lucide-react';
 
-// --- 1. BACKGROUND ANIMASI (SAMA DENGAN ADMIN) ---
 const AnimatedBackground = () => (
   <div className="fixed inset-0 -z-10 overflow-hidden bg-[#fff0f5]">
     <div className="absolute top-0 left-[-10%] w-[500px] h-[500px] bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
@@ -32,7 +32,6 @@ export default function HomePage() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch Data Produk
   useEffect(() => {
     const fetchData = async () => {
       const data = await getProducts();
@@ -42,12 +41,10 @@ export default function HomePage() {
     if (status === 'authenticated') fetchData();
   }, [status]);
 
-  // Filter Produk Client-Side (Sederhana)
   const filteredProducts = productsToShow.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Loading Screen Awal
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-pink-50">
@@ -56,12 +53,11 @@ export default function HomePage() {
     );
   }
   
-  // Jika Belum Login -> Tampilkan Landing Page
   if (status === 'unauthenticated') {
     return <LandingView />;
   }
 
-  // Kategori dengan Icon & Warna Admin Style
+  // --- PEMBARUAN DI SINI: Menambahkan Kategori 'Request' ---
   const categories = [
     { name: 'Gelang', icon: CircleDashed, href: '/products?category=Gelang', color: 'text-pink-600', bg: 'bg-pink-100', border: 'border-pink-200' },
     { name: 'Kalung', icon: Gem, href: '/products?category=Kalung', color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200' },
@@ -69,7 +65,10 @@ export default function HomePage() {
     { name: 'Keychain', icon: Key, href: '/products?category=Keychain', color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200' },
     { name: 'Strap HP', icon: Smartphone, href: '/products?category=Strap Handphone', color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
     { name: 'Jam Manik', icon: Watch, href: '/products?category=Jam Manik', color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
+    // Kategori Request Baru
+    { name: 'Request', icon: PenTool, href: '/products?category=Request', color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200' },
   ];
+  // --------------------------------------------------------
 
   return (
     <div className="min-h-screen text-stone-800 pb-20 relative">
@@ -77,22 +76,17 @@ export default function HomePage() {
       
       <div className="container mx-auto px-4 pt-4 md:pt-8 space-y-12">
         
-        {/* --- HERO SECTION: GLASS CARD MEWAH --- */}
+        {/* HERO SECTION */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="relative overflow-hidden rounded-[2.5rem] shadow-2xl shadow-pink-500/10 group"
         >
-          {/* Layer Glass Super */}
           <div className="absolute inset-0 bg-white/40 backdrop-blur-xl border border-white/60 z-0"></div>
-          
-          {/* Dekorasi Gradient Halus */}
           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-pink-400/20 to-purple-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
 
           <div className="relative z-10 p-8 md:p-14 flex flex-col items-center text-center space-y-6">
-             
-             {/* Greeting Badge */}
              <motion.div 
                initial={{ scale: 0.9, opacity: 0 }}
                animate={{ scale: 1, opacity: 1 }}
@@ -116,7 +110,6 @@ export default function HomePage() {
                Koleksi aksesoris handmade eksklusif yang dirancang untuk menyempurnakan setiap momen bahagiamu.
              </p>
 
-             {/* Search Bar Floating */}
              <div className="w-full max-w-lg relative group/search mt-4">
                 <div className="absolute inset-0 bg-gradient-to-r from-pink-300 to-purple-300 rounded-full blur opacity-20 group-hover/search:opacity-40 transition-opacity duration-500"></div>
                 <div className="relative flex items-center bg-white/80 backdrop-blur-md rounded-full px-2 py-2 border border-white shadow-lg transition-transform transform group-hover/search:scale-[1.02]">
@@ -137,7 +130,7 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* --- KATEGORI: WIDGET STYLE --- */}
+        {/* KATEGORI PILIHAN */}
         <section>
            <div className="flex items-center justify-between mb-6 px-2">
               <h2 className="text-2xl font-lora font-bold text-stone-800 flex items-center gap-2">
@@ -149,7 +142,8 @@ export default function HomePage() {
               </Link>
            </div>
 
-           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+           {/* Grid Kategori diperbarui untuk mengakomodasi item baru */}
+           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
               {categories.map((cat, idx) => (
                 <Link key={cat.name} href={cat.href}>
                   <motion.div 
@@ -169,7 +163,7 @@ export default function HomePage() {
            </div>
         </section>
 
-        {/* --- PRODUK TERBARU --- */}
+        {/* PRODUK TERBARU */}
         <section>
            <div className="flex items-center gap-3 mb-8 px-2">
               <div className="p-2 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-lg text-white shadow-md">
@@ -180,7 +174,6 @@ export default function HomePage() {
               </h2>
            </div>
 
-           {/* Container Grid dengan Glass Effect */}
            <div className="bg-white/40 backdrop-blur-md p-6 md:p-8 rounded-[2rem] border border-white/50 shadow-sm min-h-[400px]">
               {loadingProducts ? (
                  <div className="flex justify-center py-20">
@@ -194,7 +187,6 @@ export default function HomePage() {
                  </div>
               )}
 
-              {/* Tombol Lihat Semua (Jika tidak sedang mencari) */}
               {!searchTerm && !loadingProducts && (
                  <div className="mt-10 text-center">
                     <Button asChild size="lg" variant="outline" className="rounded-full px-8 border-2 border-stone-200 text-stone-600 hover:border-pink-300 hover:text-pink-600 hover:bg-white bg-transparent h-12 font-bold transition-all">
@@ -205,7 +197,7 @@ export default function HomePage() {
            </div>
         </section>
 
-        {/* --- PROMO BANNER (FOOTER DECORATION) --- */}
+        {/* PROMO BANNER */}
         <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
