@@ -1,6 +1,7 @@
 // File: app/admin/products/ProductListTabs.tsx
 'use client';
 
+import { useState, useEffect } from 'react'; // Import useState & useEffect
 import { IProduct } from './actions';
 import ProductActions from './ProductActions';
 import Image from 'next/image';
@@ -10,11 +11,27 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutGrid, PackageOpen, Sparkles } from 'lucide-react';
+import { LayoutGrid, Loader2, Sparkles } from 'lucide-react'; // Tambah Loader2
 
 const categories = ['Semua', 'Gelang', 'Kalung', 'Cincin', 'Keychain', 'Strap Handphone', 'Jam Manik'];
 
 export default function ProductListTabs({ products }: { products: IProduct[] }) {
+  // --- FIX HYDRATION MISMATCH ---
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Jika belum mounted (masih di server), jangan render Tabs dulu atau tampilkan loading
+  if (!isMounted) {
+    return (
+       <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-pink-500 w-8 h-8" />
+       </div>
+    );
+  }
+  // -----------------------------
   
   const getFilteredProducts = (category: string) => {
     if (category === 'Semua') return products;
@@ -24,7 +41,7 @@ export default function ProductListTabs({ products }: { products: IProduct[] }) 
   return (
     <Tabs defaultValue="Semua" className="w-full">
       
-      {/* Header Tabs yang Lebih Cantik */}
+      {/* Header Tabs */}
       <div className="mb-8 overflow-x-auto pb-4 scrollbar-hide">
         <TabsList className="flex h-auto w-max gap-3 bg-transparent p-0">
           {categories.map((cat) => (

@@ -1,43 +1,46 @@
+// File: app/dashboard/my-orders/actions.ts
 'use server';
 
 import dbConnect from '@/lib/dbConnect';
 import Order from '@/models/Order';
 import Review from '@/models/Review';
 import { auth } from '@/auth';
-import { IOrder } from '@/app/admin/orders/actions'; // Kita gunakan IOrder yang sudah diperbaiki
+import { IOrder } from '@/app/admin/orders/actions'; 
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 
-// Tipe data baru yang dikirim ke client
+// Interface untuk data order di frontend
 export interface IOrderWithReview extends IOrder {
   isReviewed: boolean;
 }
 
-// 1. GET ORDERS (Diperbarui untuk cek status review)
+// 1. GET ORDERS (Ambil pesanan user & cek status review)
 export async function getMyOrders(): Promise<IOrderWithReview[]> {
   const session = await auth();
   if (!session?.user) return []; 
   
   await dbConnect();
+  
+  // Ambil order milik user
   const orders = await Order.find({ user: session.user.id })
     .populate('user', 'name email')
     .sort({ createdAt: -1 });
   
-  // Cek apakah setiap order sudah direview
+  // Cek status review untuk setiap order secara paralel
   const ordersWithReviewStatus = await Promise.all(orders.map(async (order) => {
-    // Cek di koleksi Review apakah ada review yang terkait 'order' ini
+    // Cek apakah sudah ada review dengan orderId ini
     const reviewExists = await Review.exists({ order: order._id });
     
     return {
       ...(JSON.parse(JSON.stringify(order)) as IOrder),
-      isReviewed: !!reviewExists // True jika reviewExists tidak null
+      isReviewed: !!reviewExists 
     };
   }));
   
   return ordersWithReviewStatus;
 }
 
-// 2. MARK DELIVERED (Tetap sama)
+// 2. MARK DELIVERED (Konfirmasi Terima Pesanan)
 export async function markOrderAsDelivered(orderId: string) {
   const session = await auth();
   if (!session?.user) return { success: false, message: 'Akses ditolak' };
@@ -58,17 +61,17 @@ export async function markOrderAsDelivered(orderId: string) {
   }
 }
 
-// 3. SUBMIT REVIEW (Diperbarui untuk simpan OrderID & handle Foto)
+// 3. SUBMIT REVIEW (Kirim Ulasan + Foto)
 export async function submitReview(formData: FormData) {
   const session = await auth();
   if (!session?.user) return { success: false, message: 'Akses ditolak' };
 
   try {
     const productId = formData.get('productId') as string;
-    const orderId = formData.get('orderId') as string; // Ambil orderId dari form
+    const orderId = formData.get('orderId') as string;
     const rating = Number(formData.get('rating'));
     const comment = formData.get('comment') as string;
-    const imageFile = formData.get('image') as File;
+    const imageFile = formData.get('image') as File; // Ambil file gambar
 
     if (!productId || !orderId || !rating || !comment) {
       return { success: false, message: 'Rating dan Komentar wajib diisi' };
@@ -76,7 +79,7 @@ export async function submitReview(formData: FormData) {
 
     await dbConnect();
 
-    // Cek duplikasi review untuk order ini
+    // Cek apakah sudah pernah review sebelumnya (double check)
     const existingReview = await Review.findOne({ order: orderId });
     if (existingReview) {
         return { success: false, message: 'Anda sudah mengulas pesanan ini.' };
@@ -84,26 +87,28 @@ export async function submitReview(formData: FormData) {
     
     let imageUrl: string | undefined = undefined;
 
-    // Upload foto jika ada
+    // --- LOGIKA UPLOAD GAMBAR ---
     if (imageFile && imageFile.size > 0) {
+      // Upload ke Vercel Blob
       const blob = await put(
         `reviews/${session.user.id}/${imageFile.name}`, 
         imageFile,
         { access: 'public', addRandomSuffix: true }
       );
-      imageUrl = blob.url;
+      imageUrl = blob.url; // Simpan URL hasil upload
     }
 
-    // Buat ulasan baru
+    // --- SIMPAN KE DATABASE ---
     await Review.create({
       product: productId,
       user: session.user.id,
-      order: orderId, // <-- SIMPAN ID ORDER
+      order: orderId,
       rating,
       comment,
-      image: imageUrl,
+      image: imageUrl, // URL gambar disimpan di sini
     });
     
+    // Refresh halaman agar update terlihat
     revalidatePath('/dashboard/my-orders');
     revalidatePath(`/products/${productId}`); 
     revalidatePath('/admin/reviews');
@@ -111,6 +116,7 @@ export async function submitReview(formData: FormData) {
     return { success: true, message: 'Ulasan Anda berhasil dikirim' };
 
   } catch (error: any) {
-    return { success: false, message: error.message };
+    console.error("Submit Review Error:", error);
+    return { success: false, message: error.message || "Gagal mengirim ulasan" };
   }
 }

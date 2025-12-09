@@ -16,6 +16,14 @@ export interface ICartItem {
 interface CartContextType {
   cartItems: ICartItem[];
   selectedItems: ICartItem[]; 
+  
+  // State Beli Langsung
+  directCheckoutItem: ICartItem | null;
+  setDirectCheckoutItem: (item: ICartItem | null) => void;
+  
+  // Fungsi Proses Sukses (Disederhanakan)
+  processCheckoutSuccess: (isDirect: boolean) => void;
+
   addToCart: (item: ICartItem) => void;
   removeFromCart: (id: string, model?: string) => void;
   updateQuantity: (id: string, quantity: number, model?: string) => void;
@@ -29,6 +37,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<ICartItem[]>([]); 
+  const [directCheckoutItem, setDirectCheckoutItem] = useState<ICartItem | null>(null); 
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -42,6 +51,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (isLoaded) localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems, isLoaded]);
+
+  // --- LOGIKA BARU: TERPISAH SEPENUHNYA ---
+  const processCheckoutSuccess = (isDirect: boolean) => {
+    if (isDirect) {
+        // Jika Beli Langsung: HANYA bersihkan state beli langsung.
+        // Keranjang TIDAK disentuh sama sekali.
+        setDirectCheckoutItem(null);
+    } else {
+        // Jika Checkout dari Keranjang: Hapus item yang dipilih.
+        setCartItems(prevCart => prevCart.filter(item => !item.selected));
+    }
+  };
 
   const addToCart = (item: ICartItem) => {
     setCartItems(prevCart => {
@@ -100,7 +121,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <CartContext.Provider
-      value={{ cartItems, selectedItems, addToCart, removeFromCart, updateQuantity, toggleCartItemSelection, clearCart, getTotalPrice, getTotalItems }}
+      value={{ 
+        cartItems, selectedItems, 
+        directCheckoutItem, setDirectCheckoutItem, processCheckoutSuccess, 
+        addToCart, removeFromCart, updateQuantity, toggleCartItemSelection, clearCart, getTotalPrice, getTotalItems 
+      }}
     >
       {children}
     </CartContext.Provider>

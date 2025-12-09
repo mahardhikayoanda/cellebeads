@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useCart, ICartItem } from '@/context/CartContext';
-import { IProduct, IModel } from '@/app/admin/products/actions'; // Import IModel
+import { IProduct, IModel } from '@/app/admin/products/actions'; 
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Zap, Plus, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation'; 
@@ -14,26 +14,23 @@ interface AddToCartProps {
 }
 
 export default function AddToCartClient({ product }: AddToCartProps) {
-  const { addToCart } = useCart();
+  const { addToCart, setDirectCheckoutItem } = useCart(); // Ambil setDirectCheckoutItem
   const [quantity, setQuantity] = useState(1);
-  const [selectedModel, setSelectedModel] = useState<IModel | null>(null); // State simpan object model penuh
+  const [selectedModel, setSelectedModel] = useState<IModel | null>(null); 
   const router = useRouter();
 
-  // Helper Models
-  // Sekarang product.models adalah array of objects {name, price}
   const models = product.models as unknown as IModel[]; 
   const hasModels = models && models.length > 0;
 
   const createItem = (): ICartItem => {
     const mainImage = product.images && product.images.length > 0 ? product.images[0] : '/placeholder-banner.jpg';
     
-    // LOGIKA PENTING: Gunakan harga model jika ada model dipilih, jika tidak gunakan harga produk
     const finalPrice = selectedModel ? selectedModel.price : product.price;
 
     return {
       _id: product._id,
       name: product.name,
-      price: finalPrice, // <--- HARGA SESUAI VARIAN
+      price: finalPrice, 
       image: mainImage,
       quantity: Number(quantity), 
       selected: true, 
@@ -55,6 +52,7 @@ export default function AddToCartClient({ product }: AddToCartProps) {
         toast.error("Harap pilih varian model terlebih dahulu!");
         return;
     }
+    // Masuk Keranjang (Jalur Normal)
     addToCart(createItem());
     toast.success("Berhasil masuk keranjang!", {
         description: selectedModel ? `${quantity}x ${product.name} (${selectedModel.name})` : `${quantity}x ${product.name}`
@@ -66,7 +64,10 @@ export default function AddToCartClient({ product }: AddToCartProps) {
         toast.error("Harap pilih varian model terlebih dahulu!");
         return;
     }
-    addToCart(createItem());
+    
+    // --- JALUR BELI LANGSUNG ---
+    // Simpan ke state khusus, JANGAN masuk ke keranjang umum dulu
+    setDirectCheckoutItem(createItem());
     router.push('/checkout');
   };
 
@@ -81,12 +82,10 @@ export default function AddToCartClient({ product }: AddToCartProps) {
   return (
     <div className="flex flex-col gap-6">
       
-      {/* --- PILIHAN MODEL & HARGA --- */}
       {hasModels && (
         <div className="space-y-3">
             <div className="flex justify-between items-center">
                 <span className="text-sm font-bold text-stone-500 uppercase tracking-wider">Pilih Varian:</span>
-                {/* Tampilkan harga dinamis varian yang dipilih */}
                 {selectedModel && (
                     <span className="text-lg font-bold text-pink-600 animate-in fade-in">
                         Rp {selectedModel.price.toLocaleString('id-ID')}
@@ -109,14 +108,13 @@ export default function AddToCartClient({ product }: AddToCartProps) {
                     </button>
                 ))}
             </div>
-            {!selectedModel && <p className="text-xs text-rose-500">*Wajib dipilih untuk melihat harga pas</p>}
+            {!selectedModel && <p className="text-xs text-rose-500">*Wajib dipilih</p>}
         </div>
       )}
 
-      {/* Selector Kuantitas & Tombol (SAMA SEPERTI SEBELUMNYA) */}
       <div className="flex items-center gap-4">
          <span className="text-sm font-bold text-stone-500 uppercase tracking-wider min-w-[60px]">Jumlah</span>
-         <div className="flex items-center bg-white border border-stone-200 rounded-full p-1 shadow-sm">
+         <div className="flex items-center bg-white border border-stone-200 rounded-full p-1 shadow-sm hover:shadow-md transition-shadow">
             <Button variant="ghost" size="icon" onClick={handleDecrement} disabled={quantity <= 1} className="h-9 w-9 rounded-full hover:bg-pink-50 hover:text-pink-600 disabled:opacity-30 text-stone-500"><Minus size={16} /></Button>
             <div className="w-12 text-center font-bold text-stone-800 text-lg">{quantity}</div>
             <Button variant="ghost" size="icon" onClick={handleIncrement} disabled={quantity >= product.stock} className="h-9 w-9 rounded-full hover:bg-pink-50 hover:text-pink-600 disabled:opacity-30 text-stone-500"><Plus size={16} /></Button>

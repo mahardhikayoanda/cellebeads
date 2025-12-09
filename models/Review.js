@@ -2,20 +2,46 @@
 import mongoose, { Schema, model } from 'mongoose';
 
 const ReviewSchema = new Schema({
-  product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  order: { type: Schema.Types.ObjectId, ref: 'Order', required: true }, 
-  rating: { type: Number, required: true, min: 1, max: 5 },
-  comment: { type: String, required: true },
-  image: { type: String, required: false },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true,
+  },
+  order: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Order', 
+    required: true 
+  },
+  rating: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5,
+  },
+  comment: {
+    type: String,
+    required: true,
+  },
   
-  // --- TAMBAHAN BARU: BALASAN ADMIN ---
-  adminReply: { type: String, required: false },
-  adminReplyDate: { type: Date, required: false },
-  // ------------------------------------
-  
+  // --- BAGIAN INI YANG KEMUNGKINAN HILANG SEBELUMNYA ---
+  image: { 
+    type: String, 
+    required: false 
+  }, 
+  // -----------------------------------------------------
+
+  adminReply: {
+    type: String,
+    required: false
+  }
 }, { timestamps: true });
 
+// Anti-crash logic untuk development mode (Next.js Hot Reload)
 if (process.env.NODE_ENV === 'development') {
   if (mongoose.models && mongoose.models.Review) {
     delete mongoose.models.Review;

@@ -6,11 +6,10 @@ import { IProduct } from '@/app/admin/products/actions';
 import ProductGallery from '@/components/ProductGallery';
 import { Badge } from '@/components/ui/badge';
 import AddToCartClient from './AddToCartClient';
-import ReviewList from '@/components/ReviewList'; // Pastikan path import benar
-import { ArrowLeft, Star, ShieldCheck, Truck } from 'lucide-react';
+import ReviewList from '@/components/ReviewList'; 
+import { ArrowLeft, Star } from 'lucide-react'; // Hapus ShieldCheck & Truck
 import Link from 'next/link';
 
-// Background Animasi (Konsisten dengan halaman lain)
 const AnimatedBackground = () => (
   <div className="fixed inset-0 -z-10 overflow-hidden bg-[#fff0f5] pointer-events-none">
     <div className="absolute top-0 left-[-10%] w-[500px] h-[500px] bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
@@ -21,29 +20,54 @@ const AnimatedBackground = () => (
 
 export default function ProductDetailClientWrapper({ product, reviews }: { product: IProduct, reviews: any[] }) {
   
-  // Hitung rata-rata rating untuk ditampilkan di atas
   const avgRating = reviews.length > 0 
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length 
     : 0;
 
+  // Helper Format Rupiah
+  const formatRupiah = (num: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0
+    }).format(num);
+  };
+
+  // Logika Tampilan Harga (Support Rentang Harga)
+  const renderPrice = () => {
+    if (product.displayPrice) {
+       if (product.displayPrice.includes('-')) {
+          const parts = product.displayPrice.split('-');
+          const formattedParts = parts.map(part => {
+             const cleanNum = part.replace(/[^0-9]/g, '');
+             return cleanNum ? formatRupiah(Number(cleanNum)) : part;
+          });
+          return formattedParts.join(' - ');
+       }
+       
+       const cleanNum = product.displayPrice.replace(/[^0-9]/g, '');
+       if (cleanNum && !isNaN(Number(cleanNum))) {
+           return formatRupiah(Number(cleanNum));
+       }
+
+       return product.displayPrice;
+    }
+    return formatRupiah(product.price);
+  };
+
   return (
-    <div className="min-h-screen pb-20 relative text-stone-800">
+    <div className="min-h-screen pb-20 relative text-stone-800 font-sans">
       <AnimatedBackground />
 
       <div className="container mx-auto px-4 pt-6 md:pt-10 max-w-6xl">
         
-        {/* Breadcrumb / Back Button */}
-        <motion.div 
-          initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-          className="mb-6"
-        >
+        {/* Tombol Kembali */}
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="mb-6">
           <Link href="/products" className="inline-flex items-center text-sm font-medium text-stone-500 hover:text-pink-600 transition-colors group">
             <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
             Kembali ke Koleksi
           </Link>
         </motion.div>
 
-        {/* --- MAIN PRODUCT CARD (GLASS) --- */}
+        {/* Kartu Produk Utama */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -76,8 +100,9 @@ export default function ProductDetailClientWrapper({ product, reviews }: { produ
                   {product.name}
                 </h1>
                 
+                {/* Harga Utama */}
                 <p className="text-3xl font-sans font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600">
-                  Rp {product.price.toLocaleString('id-ID')}
+                  {renderPrice()}
                 </p>
               </div>
 
@@ -90,15 +115,18 @@ export default function ProductDetailClientWrapper({ product, reviews }: { produ
                 </p>
               </div>
 
-              {/* Action Area */}
-              <div className="bg-white/50 p-6 rounded-2xl border border-white shadow-sm">
+              {/* Area Aksi (Add to Cart) */}
+              <div className="bg-white/50 p-6 rounded-2xl border border-white shadow-sm hover:shadow-md transition-shadow">
                  <AddToCartClient product={product} />
               </div>
+
+              {/* BAGIAN TRUST BADGES TELAH DIHAPUS DARI SINI */}
+
             </div>
           </div>
         </motion.div>
 
-        {/* --- REVIEWS SECTION --- */}
+        {/* Bagian Ulasan */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
