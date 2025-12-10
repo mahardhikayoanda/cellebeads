@@ -275,8 +275,17 @@ export default function ProductForm() {
             </div>
 
             <div className="pt-4">
-              <Button type="submit" disabled={isLoading} className="w-full h-14 text-base font-bold bg-stone-800 hover:bg-stone-900 shadow-xl rounded-xl">
-                {isLoading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Menyimpan...</> : <span className="flex items-center"><Plus className="mr-2 h-5 w-5" /> Simpan ke Katalog</span>}
+              {/* TOMBOL SIMPAN YANG DIPERBAIKI (PINK GRADIENT) */}
+              <Button 
+                type="submit" 
+                disabled={isLoading} 
+                className="w-full h-14 text-base font-bold bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-xl shadow-pink-200 rounded-xl transition-all hover:-translate-y-1"
+              >
+                {isLoading ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Menyimpan...</>
+                ) : (
+                  <span className="flex items-center"><Plus className="mr-2 h-5 w-5" /> Simpan ke Katalog</span>
+                )}
               </Button>
             </div>
           </form>

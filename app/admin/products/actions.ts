@@ -140,7 +140,7 @@ export async function getProductById(productId: string): Promise<IProduct | null
 }
 
 // 5. UPDATE PRODUCT
-export async function updateProduct(formData: FormData) {
+export async function updateProduct(_id: string, payload: { name: string; description: string; price: number; stock: number; category: string; images: string[]; models: string[]; }, formData: FormData) {
   await dbConnect();
 
   try {

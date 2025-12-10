@@ -12,12 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from 'framer-motion';
 import { Loader2, User, MapPin, Phone, CreditCard, ShoppingBag, ArrowRight } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from 'sonner'; // Pastikan import ini benar
 import Image from 'next/image';
-
-interface IActionCartItem {
-  _id: string; name: string; price: number; qty: number; selectedModel?: string; 
-}
 
 export default function CheckoutForm() {
   const { selectedItems, directCheckoutItem, processCheckoutSuccess } = useCart();
@@ -29,11 +25,13 @@ export default function CheckoutForm() {
   useEffect(() => setIsMounted(true), []);
 
   // --- LOGIKA SUMBER ITEM ---
+  // Jika ada item directCheckout (Beli Sekarang), gunakan itu. Jika tidak, ambil dari Cart.
   const isDirectBuy = !!directCheckoutItem;
   const itemsToCheckout = isDirectBuy ? [directCheckoutItem!] : selectedItems;
 
   const total = itemsToCheckout.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
+  // Redirect jika tidak ada item
   useEffect(() => {
     if (isMounted && itemsToCheckout.length === 0 && !isLoading) {
       router.push('/cart');
@@ -43,9 +41,23 @@ export default function CheckoutForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const formData = new FormData(e.currentTarget);
     
-    const itemsForAction: IActionCartItem[] = itemsToCheckout.map(item => ({
+    // Validasi Sederhana
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const phone = formData.get('phone') as string;
+    const address = formData.get('address') as string;
+
+    if (!name || !phone || !address) {
+        toast.warning("Data Belum Lengkap", {
+            description: "Mohon isi semua informasi pengiriman."
+        });
+        setIsLoading(false);
+        return;
+    }
+
+    // Persiapkan Data Item untuk Server Action
+    const itemsForAction = itemsToCheckout.map(item => ({
       _id: item._id, 
       name: item.name, 
       price: item.price, 
@@ -54,24 +66,41 @@ export default function CheckoutForm() {
     }));
 
     try {
-      // @ts-ignore
+      // Panggil Server Action
+      // (Asumsi: createOrder di actions.ts sudah menerima parameter ke-2 yaitu items)
+      // Jika masih error tipe di sini, pastikan update actions.ts juga.
+      // @ts-ignore: Mengabaikan error tipe sementara jika actions.ts belum diupdate
       const result = await createOrder(formData, itemsForAction);
       
       if (result.success && result.waUrl) {
+        // Bersihkan State (Cart atau Direct Item)
         processCheckoutSuccess(isDirectBuy); 
-        toast.success("Pesanan Dibuat!", { description: "Mengalihkan ke WhatsApp..." });
+        
+        // Notifikasi Sukses
+        toast.success("Pesanan Berhasil Dibuat! 🎉", {
+            description: "Mengalihkan ke WhatsApp untuk pembayaran...",
+            duration: 3000,
+        });
+
+        // Redirect ke WA
         setTimeout(() => { window.location.href = result.waUrl!; }, 1500);
       } else {
-        toast.error("Gagal membuat pesanan", { description: result.message });
+        toast.error("Gagal Membuat Pesanan", { 
+            description: result.message || "Silakan coba lagi." 
+        });
         setIsLoading(false);
       }
     } catch (error) {
-      toast.error("Terjadi kesalahan jaringan.");
+      toast.error("Terjadi Kesalahan Sistem", {
+          description: "Periksa koneksi internet Anda."
+      });
       setIsLoading(false);
     }
   };
 
   if (!isMounted) return null;
+
+  if (itemsToCheckout.length === 0) return null;
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -118,17 +147,19 @@ export default function CheckoutForm() {
         </div>
       </motion.div>
 
-      {/* --- KOLOM KANAN: RINGKASAN (Tanpa Ongkir & Badge SSL) --- */}
+      {/* --- KOLOM KANAN: RINGKASAN --- */}
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-1">
          <div className="sticky top-28 space-y-6">
             <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-[2rem] p-6 shadow-2xl shadow-pink-200/50 overflow-hidden relative">
+               
+               {/* Background Dekorasi */}
                <div className="absolute -top-10 -right-10 w-32 h-32 bg-pink-100 rounded-full blur-2xl opacity-60"></div>
                
                <h3 className="text-lg font-lora font-bold text-stone-800 mb-6 flex items-center gap-2 relative z-10">
                   <ShoppingBag size={18} /> {isDirectBuy ? 'Beli Langsung' : 'Ringkasan Pesanan'}
                </h3>
 
-               {/* List Item Scrollable */}
+               {/* List Item */}
                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide mb-6 relative z-10">
                   {itemsToCheckout.map(item => (
                     <div key={`${item._id}-${item.selectedModel || 'def'}`} className="flex gap-3 items-center">
@@ -151,9 +182,8 @@ export default function CheckoutForm() {
                   ))}
                </div>
 
-               {/* Total Section (Tanpa Ongkir) */}
+               {/* Total Section */}
                <div className="pt-4 border-t border-dashed border-stone-300 relative z-10">
-                  {/* Hanya Subtotal dan Total yang tersisa */}
                   <div className="flex justify-between items-center text-stone-600 text-sm mb-2">
                      <span>Subtotal</span><span>Rp {total.toLocaleString('id-ID')}</span>
                   </div>
@@ -169,14 +199,15 @@ export default function CheckoutForm() {
                  disabled={isLoading || itemsToCheckout.length === 0}
                  className="w-full h-14 mt-6 bg-stone-900 hover:bg-gradient-to-r hover:from-pink-600 hover:to-purple-600 text-white font-bold rounded-xl shadow-lg transition-all hover:-translate-y-1 group relative z-10"
                >
-                 {isLoading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Memproses...</> : <>Buat Pesanan <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" /></>}
+                 {isLoading ? (
+                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Memproses...</> 
+                 ) : (
+                    <>Buat Pesanan <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
+                 )}
                </Button>
             </div>
-            
-            {/* Bagian Trust Badge SSL sudah dihapus */}
          </div>
       </motion.div>
-
     </form>
   );
 }

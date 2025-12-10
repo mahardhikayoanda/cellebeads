@@ -1,85 +1,85 @@
 // File: app/admin/products/ProductActions.tsx
-'use client'; 
+'use client';
 
 import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2, Loader2 } from 'lucide-react';
+import { deleteProduct } from './actions';
+import { toast } from 'sonner'; // [BARU] Import Toast
 import Link from 'next/link';
-import { deleteProduct, IProduct } from './actions'; 
-import { Button } from '@/components/ui/button'; 
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
-} from "@/components/ui/alert-dialog"; 
-import { Edit, Trash2 } from 'lucide-react'; 
 
-interface ProductActionsProps { 
-  product: IProduct; 
-}
+// [BARU] Import Komponen Alert Dialog (Pop Up Tengah)
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-export default function ProductActions({ product }: ProductActionsProps) {
+export default function ProductActions({ product }: { product: any }) {
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // --- INI LOGIKA YANG HILANG SEBELUMNYA ---
-  const handleDelete = async () => {
+  const performDelete = async () => {
     setIsDeleting(true);
+    const toastId = toast.loading("Menghapus produk..."); // [BARU] Loading Toast
+
     try {
-      const result = await deleteProduct(product._id);
-      
-      if (result.success) {
-        alert("Produk berhasil dihapus!");
-        // Halaman akan otomatis di-refresh oleh revalidatePath di server action
-      } else {
-        alert("Gagal menghapus: " + result.message);
-      }
-    } catch (error) {
-      alert("Terjadi kesalahan saat menghapus produk.");
+        const res = await deleteProduct(product._id);
+        if (res.success) {
+            toast.success("Produk Terhapus", { id: toastId });
+        } else {
+            toast.error("Gagal Menghapus", { description: res.message, id: toastId });
+        }
+    } catch (err) {
+        toast.error("Terjadi kesalahan sistem", { id: toastId });
     } finally {
-      setIsDeleting(false);
+        setIsDeleting(false);
     }
   };
-  // -----------------------------------------
 
   return (
-    <div className="flex justify-center items-center space-x-2"> 
-      {/* Tombol Edit (Outline Kuning) */}
-      <Button asChild variant="outline" size="icon" className="border-yellow-500 text-yellow-500 hover:bg-yellow-900 hover:text-yellow-300 h-8 w-8">
+    <div className="flex gap-2">
+      {/* Tombol Edit */}
+      <Button asChild variant="outline" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-pink-50 hover:text-pink-600 border-stone-200">
         <Link href={`/admin/products/edit/${product._id}`}>
-           <Edit className="h-4 w-4" />
+           <Edit size={14} />
         </Link>
       </Button>
       
-      {/* Tombol Hapus (Destructive Merah) */}
+      {/* [UBAH] Tombol Hapus dengan Pop Up Confirmation (Alert Dialog) */}
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="icon" disabled={isDeleting} className="h-8 w-8">
-             <Trash2 className="h-4 w-4" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 w-8 p-0 rounded-lg hover:bg-rose-50 hover:text-rose-600 border-stone-200"
+            disabled={isDeleting}
+          >
+            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
           </Button>
         </AlertDialogTrigger>
-        {/* Dialog Konfirmasi Gelap */}
-        <AlertDialogContent className="bg-gray-800 border-gray-700 text-gray-300">
+        
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl rounded-[2rem] border-pink-100 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Anda Yakin?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tindakan ini akan menghapus produk "{product.name}" secara permanen.
+            <AlertDialogTitle className="font-lora text-xl text-stone-800">
+              Hapus Produk "{product.name}"?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-stone-500">
+              Tindakan ini tidak dapat dibatalkan. Produk ini akan hilang dari katalog pelanggan secara permanen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-600 hover:bg-gray-500 border-gray-500 text-gray-200">Batal</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl border-stone-200 hover:bg-stone-50">Batal</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={(e) => {
-                e.preventDefault(); // Mencegah dialog menutup otomatis sebelum proses selesai
-                handleDelete();
-              }} 
-              disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white" 
+              onClick={performDelete}
+              className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold"
             >
-              {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+              Ya, Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

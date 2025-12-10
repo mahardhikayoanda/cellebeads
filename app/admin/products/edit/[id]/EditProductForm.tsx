@@ -134,7 +134,17 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           formData.append('oldImageUrl', product.images[0]);
       }
 
-      const result = await updateProduct(formData);
+      const payload = {
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        price: finalPrice,
+        stock: Number(formData.get('stock')),
+        category: category,
+        images: product.images || [],
+        models: models.map(m => JSON.stringify(m))
+      };
+      
+      const result = await updateProduct(product._id, payload, formData);
 
       if (result.success) {
         toast.success("Produk berhasil diperbarui!");

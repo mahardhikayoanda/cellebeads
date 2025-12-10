@@ -3,29 +3,39 @@
 
 import { useState } from 'react';
 import { useCart, ICartItem } from '@/context/CartContext';
-import { IProduct, IModel } from '@/app/admin/products/actions'; 
+import { IProduct } from '@/app/admin/products/actions'; 
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Zap, Plus, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation'; 
 import { toast } from 'sonner';
+
+// Definisi Lokal untuk keamanan tipe data
+type ModelType = string | { name: string; price?: number };
 
 interface AddToCartProps {
   product: IProduct;
 }
 
 export default function AddToCartClient({ product }: AddToCartProps) {
-  const { addToCart, setDirectCheckoutItem } = useCart(); // Ambil setDirectCheckoutItem
+  const { addToCart, setDirectCheckoutItem } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [selectedModel, setSelectedModel] = useState<IModel | null>(null); 
+  const [selectedModel, setSelectedModel] = useState<string | null>(null); 
   const router = useRouter();
 
-  const models = product.models as unknown as IModel[]; 
-  const hasModels = models && models.length > 0;
+  // Aman mengambil models, default ke array kosong jika null
+  const rawModels = (product.models || []) as ModelType[];
+  const hasModels = rawModels.length > 0;
+
+  // Helper untuk mendapatkan nama & harga model dengan aman
+  const getModelName = (m: ModelType) => (typeof m === 'string' ? m : m.name);
+  const getModelPrice = (m: ModelType) => (typeof m === 'object' && m.price ? m.price : product.price);
 
   const createItem = (): ICartItem => {
     const mainImage = product.images && product.images.length > 0 ? product.images[0] : '/placeholder-banner.jpg';
     
-    const finalPrice = selectedModel ? selectedModel.price : product.price;
+    // Cari object model terpilih untuk cek harga (jika ada variasi harga)
+    const selectedModelObj = rawModels.find(m => getModelName(m) === selectedModel);
+    const finalPrice = selectedModelObj ? getModelPrice(selectedModelObj) : product.price;
 
     return {
       _id: product._id,
@@ -34,7 +44,7 @@ export default function AddToCartClient({ product }: AddToCartProps) {
       image: mainImage,
       quantity: Number(quantity), 
       selected: true, 
-      selectedModel: selectedModel ? selectedModel.name : undefined,
+      selectedModel: selectedModel || undefined,
     };
   };
 
@@ -49,31 +59,39 @@ export default function AddToCartClient({ product }: AddToCartProps) {
 
   const handleAddToCart = () => {
     if (hasModels && !selectedModel) {
-        toast.error("Harap pilih varian model terlebih dahulu!");
+        toast.warning("Pilih Varian Dulu", {
+            description: "Silakan pilih model yang kamu inginkan."
+        });
         return;
     }
-    // Masuk Keranjang (Jalur Normal)
+
     addToCart(createItem());
-    toast.success("Berhasil masuk keranjang!", {
-        description: selectedModel ? `${quantity}x ${product.name} (${selectedModel.name})` : `${quantity}x ${product.name}`
+    
+    // Notifikasi Sukses dengan Aksi
+    toast.success("Masuk Keranjang! 🛍️", {
+        description: selectedModel ? `${quantity}x ${product.name} (${selectedModel})` : `${quantity}x ${product.name}`,
+        action: {
+            label: "Lihat Cart",
+            onClick: () => router.push('/cart')
+        },
+        duration: 3000
     });
   };
 
   const handleBuyNow = () => {
     if (hasModels && !selectedModel) {
-        toast.error("Harap pilih varian model terlebih dahulu!");
+        toast.warning("Pilih Varian Dulu");
         return;
     }
     
-    // --- JALUR BELI LANGSUNG ---
-    // Simpan ke state khusus, JANGAN masuk ke keranjang umum dulu
+    // Simpan ke state khusus Direct Checkout
     setDirectCheckoutItem(createItem());
     router.push('/checkout');
   };
 
   if (product.stock === 0) {
     return (
-      <div className="w-full p-4 bg-stone-100 rounded-2xl text-center border border-stone-200">
+      <div className="w-full p-4 bg-stone-100 rounded-2xl text-center border border-stone-200 mt-4">
          <p className="text-stone-500 font-bold uppercase tracking-widest text-sm">Stok Habis</p>
       </div>
     );
@@ -82,36 +100,38 @@ export default function AddToCartClient({ product }: AddToCartProps) {
   return (
     <div className="flex flex-col gap-6">
       
+      {/* Pilihan Model / Varian */}
       {hasModels && (
         <div className="space-y-3">
             <div className="flex justify-between items-center">
                 <span className="text-sm font-bold text-stone-500 uppercase tracking-wider">Pilih Varian:</span>
-                {selectedModel && (
-                    <span className="text-lg font-bold text-pink-600 animate-in fade-in">
-                        Rp {selectedModel.price.toLocaleString('id-ID')}
-                    </span>
-                )}
             </div>
             
             <div className="flex flex-wrap gap-2">
-                {models.map((model) => (
-                    <button
-                        key={model.name}
-                        onClick={() => setSelectedModel(model)}
-                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                            selectedModel?.name === model.name
-                                ? "bg-stone-800 text-white border-stone-800 shadow-md scale-105"
-                                : "bg-white text-stone-600 border-stone-200 hover:border-pink-300 hover:bg-pink-50"
-                        }`}
-                    >
-                        {model.name}
-                    </button>
-                ))}
+                {rawModels.map((model, idx) => {
+                    const name = getModelName(model);
+                    const isSelected = selectedModel === name;
+                    
+                    return (
+                        <button
+                            key={idx}
+                            onClick={() => setSelectedModel(name)}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                                isSelected
+                                    ? "bg-stone-800 text-white border-stone-800 shadow-md transform scale-105"
+                                    : "bg-white text-stone-600 border-stone-200 hover:border-pink-300 hover:bg-pink-50"
+                            }`}
+                        >
+                            {name}
+                        </button>
+                    );
+                })}
             </div>
-            {!selectedModel && <p className="text-xs text-rose-500">*Wajib dipilih</p>}
+            {!selectedModel && <p className="text-xs text-rose-500 font-medium">*Wajib dipilih</p>}
         </div>
       )}
 
+      {/* Kontrol Jumlah & Stok */}
       <div className="flex items-center gap-4">
          <span className="text-sm font-bold text-stone-500 uppercase tracking-wider min-w-[60px]">Jumlah</span>
          <div className="flex items-center bg-white border border-stone-200 rounded-full p-1 shadow-sm hover:shadow-md transition-shadow">
@@ -122,6 +142,7 @@ export default function AddToCartClient({ product }: AddToCartProps) {
          <span className="text-xs font-medium text-stone-400 bg-stone-50 px-2 py-1 rounded-md border border-stone-100">Stok: {product.stock}</span>
       </div>
 
+      {/* Tombol Aksi */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button size="lg" variant="outline" onClick={handleAddToCart} className="flex-1 h-14 border-2 border-pink-200 text-pink-700 font-bold rounded-2xl hover:-translate-y-0.5 transition-all">
           <ShoppingCart className="h-5 w-5 mr-2" /> Masuk Keranjang
