@@ -3,6 +3,7 @@
 
 import dbConnect from '@/lib/dbConnect';
 import Review from '@/models/Review';
+import Product from '@/models/Product'; // Pastikan model Product ter-load
 import { revalidatePath } from 'next/cache';
 
 export interface IReviewPopulated {
@@ -17,8 +18,11 @@ export interface IReviewPopulated {
   // Relasi
   user: { name: string; email: string };
   product: {
-      category: string; _id: string; name: string; image: string 
-};
+      category: string; 
+      _id: string; 
+      name: string; 
+      images: string[]; // [FIX] Ubah jadi array images
+  };
 }
 
 // 1. AMBIL SEMUA ULASAN
@@ -27,8 +31,8 @@ export async function getReviews(): Promise<IReviewPopulated[]> {
   try {
     const reviews = await Review.find({})
       .populate('user', 'name email')
-      .populate('product', 'name image') // Ambil nama & gambar produk
-      .sort({ createdAt: -1 }); // Terbaru di atas
+      .populate('product', 'name images') // [FIX] Ambil field 'images'
+      .sort({ createdAt: -1 }); 
       
     return JSON.parse(JSON.stringify(reviews));
   } catch (error) {
@@ -37,7 +41,7 @@ export async function getReviews(): Promise<IReviewPopulated[]> {
   }
 }
 
-// 2. KIRIM BALASAN (BARU)
+// 2. KIRIM BALASAN
 export async function replyToReview(reviewId: string, replyText: string) {
   await dbConnect();
   try {
@@ -49,7 +53,6 @@ export async function replyToReview(reviewId: string, replyText: string) {
     await review.save();
 
     revalidatePath('/admin/reviews');
-    // Refresh juga halaman produk terkait agar balasan muncul di sana
     revalidatePath(`/products/${review.product}`); 
     
     return { success: true, message: "Balasan berhasil dikirim" };

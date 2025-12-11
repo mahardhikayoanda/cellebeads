@@ -6,7 +6,6 @@ import { IReviewPopulated, replyToReview } from './actions';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { Star, Reply, Quote, CornerDownRight } from 'lucide-react';
 
 export default function ReviewAdminCard({ review }: { review: IReviewPopulated }) {
@@ -22,6 +21,9 @@ export default function ReviewAdminCard({ review }: { review: IReviewPopulated }
     setIsLoading(false);
   };
 
+  // [FIX] Ambil gambar pertama dari array images, atau fallback ke placeholder
+  const productImage = review.product?.images?.[0] || '/placeholder.jpg';
+
   return (
     <div className="glass-super rounded-3xl p-6 relative group transition-all duration-300 hover:shadow-xl hover:shadow-pink-100">
       
@@ -34,7 +36,7 @@ export default function ReviewAdminCard({ review }: { review: IReviewPopulated }
         <div className="w-full md:w-32 flex-shrink-0 flex flex-col items-center">
            <div className="relative w-24 h-24 rounded-2xl overflow-hidden shadow-md border-2 border-white rotate-3 group-hover:rotate-0 transition-transform duration-500">
              <Image 
-               src={review.product?.image || '/placeholder.jpg'} 
+               src={productImage} // [FIX] Menggunakan variabel yang sudah diperbaiki
                alt="Product" fill className="object-cover" 
              />
            </div>
