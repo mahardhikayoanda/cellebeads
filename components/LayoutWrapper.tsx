@@ -13,12 +13,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isAdmin = pathname?.startsWith('/admin');
   
   // Deteksi kondisi Landing Page (Halaman Depan & Belum Login)
+  // Di halaman ini, Footer & Navbar akan disembunyikan
   const isLandingPage = pathname === '/' && status === 'unauthenticated';
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar otomatis hidden di Landing Page (logika ada di dalam Navbar.tsx), 
-          jadi tetap kita render di sini */}
+      {/* Navbar sudah otomatis hidden di Landing Page via logikanya sendiri */}
       <Navbar />
       
       {/* Main Content */}
@@ -31,14 +31,13 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         {children}
       </main>
 
-      {/* --- MODIFIKASI FOOTER DI SINI --- */}
+      {/* --- FOOTER --- */}
       {/* Footer HANYA muncul jika: BUKAN Admin DAN BUKAN Landing Page */}
       {(!isAdmin && !isLandingPage) && (
-        <footer className="bg-white/50 backdrop-blur-md border-t border-white py-8 mt-auto">
+        <footer className="bg-white border-t border-stone-200 py-6 mt-auto">
           <div className="container mx-auto px-4 text-center">
-             <p className="font-lora font-bold text-lg text-stone-800 mb-2">Cellebeads.</p>
              <p className="text-sm text-stone-500">
-               © {new Date().getFullYear()} Handmade with Love.
+               © {new Date().getFullYear()} Cellebeads. Hak Cipta Dilindungi.
              </p>
           </div>
         </footer>
