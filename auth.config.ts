@@ -2,15 +2,14 @@
 import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
+  // [WAJIB] Definisi pages di sini agar dikenali Middleware & Server
   pages: {
     signIn: '/login', 
-    error: '/login', 
+    error: '/login', // Redirect semua error (termasuk Cancel Google) ke /login
   },
   session: { strategy: "jwt" },
-  // Providers dibiarkan array kosong di sini (akan diisi di auth.ts)
   providers: [], 
   callbacks: {
-    // Callback ini aman untuk Middleware (hanya memindahkan data token ke session)
     async session({ session, token }) {
       if (token && session.user) {
          session.user.id = token.id as string;
@@ -20,14 +19,12 @@ export const authConfig = {
       }
       return session;
     },
-    // Callback JWT sederhana untuk menyimpan data saat login pertama kali
     async jwt({ token, user, trigger, session }) {
         if (user) {
             token.id = user.id;
             token.role = (user as any).role;
             token.profileComplete = (user as any).profileComplete;
         }
-        // Update session jika ada perubahan dari client side (misal update profil)
         if (trigger === "update" && session) {
             return { ...token, ...session };
         }

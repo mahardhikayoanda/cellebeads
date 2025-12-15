@@ -12,11 +12,19 @@ export const {
     signIn,                 
     signOut,                
 } = NextAuth({
-  ...authConfig, // Warisi config dasar
+  ...authConfig, 
+  
+  // [WAJIB] Kita tulis ulang config pages di sini untuk memastikan terbaca oleh API
+  pages: {
+    signIn: '/login',
+    error: '/login', // Redirect semua error (termasuk Cancel Google) ke /login
+  },
+
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Opsi authorization ini penting agar Google tidak memaksa prompt jika tidak perlu
       authorization: {
         params: {
           prompt: "consent",
@@ -28,9 +36,8 @@ export const {
     Credentials({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        
         await dbConnect();
-        const user = await User.findOne({ email: credentials.email });
+        const user = await User.findOne({ email: credentials.email as string });
 
         if (user && user.authProvider === 'credentials' && (await user.matchPassword(credentials.password as string))) {
           return { 
@@ -46,45 +53,27 @@ export const {
     }),
   ],
   callbacks: {
-    ...authConfig.callbacks, // Warisi callback dasar
-    
-    // --- LOGIKA DATABASE (Hanya jalan di Server Node.js) ---
+    ...authConfig.callbacks,
     async signIn({ user, account }) {
+      if (account?.provider === 'credentials') return true;
       await dbConnect();
       try {
         const existingUser = await User.findOne({ email: user.email });
 
         if (account?.provider === 'google') {
           const isAdminEmail = user.email === process.env.ADMIN_EMAIL;
-
           if (existingUser) {
-            existingUser.authProvider = 'google';
-            
-            // CEK ADMIN: Pastikan role diupdate jika email sesuai .env
-            if (isAdminEmail) {
-                existingUser.role = 'admin';
-                existingUser.profileComplete = true; 
-            }
+            if (existingUser.authProvider !== 'google') existingUser.authProvider = 'google';
+            if (isAdminEmail) { existingUser.role = 'admin'; existingUser.profileComplete = true; }
             await existingUser.save();
             return true; 
           }
-
           // User Baru
           await User.create({
-            name: user.name, 
-            email: user.email,
-            authProvider: 'google',
-            role: isAdminEmail ? 'admin' : 'customer',
-            profileComplete: isAdminEmail ? true : false, 
+            name: user.name, email: user.email, authProvider: 'google',
+            role: isAdminEmail ? 'admin' : 'customer', profileComplete: isAdminEmail ? true : false, 
           });
           return true; 
-        }
-        
-        if (account?.provider === 'credentials') {
-            if (existingUser && existingUser.authProvider !== 'credentials') {
-               return false; 
-            }
-            return true; 
         }
         return true;
       } catch (error) {
@@ -92,36 +81,24 @@ export const {
         return false; 
       }
     },
-
-    // Override JWT untuk mengambil data terbaru dari DB setiap request
     async jwt({ token, user, trigger, session }) {
-      // Jalankan logika dasar dulu (untuk menangkap user object saat login awal)
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
         token.profileComplete = (user as any).profileComplete;
       }
+      if (trigger === "update" && session) return { ...token, ...session };
       
-      if (trigger === "update" && session) {
-         token = { ...token, ...session };
-      }
-
-      // Refresh data dari DB (Pastikan role Admin selalu terupdate)
       if (token.email) {
           try {
             await dbConnect();
             const dbUser = await User.findOne({ email: token.email });
             if (dbUser) {
-                token.id = dbUser._id.toString();
-                token.role = dbUser.role; // <-- Ini kunci agar role Admin terbaca
-                token.profileComplete = dbUser.profileComplete;
-                token.name = dbUser.name;
+                token.id = dbUser._id.toString(); token.role = dbUser.role; 
+                token.profileComplete = dbUser.profileComplete; token.name = dbUser.name;
             }
-          } catch(e) {
-              // Fallback ke data token lama jika DB error
-          }
+          } catch(e) {}
       }
-      
       return token;
     },
   },
