@@ -3,7 +3,7 @@
 
 import { signIn } from 'next-auth/react';
 import { useState, useEffect, Suspense } from 'react'; // [FIX] Tambahkan import Suspense
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -15,14 +15,20 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
+  const router = useRouter();
 
   useEffect(() => {
     if (error) {
       toast.error("Gagal Masuk", {
-        description: "Terjadi kesalahan saat otentikasi. Coba lagi.",
+        description: "Terjadi kesalahan saat otentikasi. Mengalihkan...",
       });
+      // Fallback: Jika next-auth gagal redirect ke '/', kita paksa client-side redirect
+      const timer = setTimeout(() => {
+         router.push('/?error=' + error);
+      }, 1500);
+      return () => clearTimeout(timer);
     }
-  }, [error]);
+  }, [error, router]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);

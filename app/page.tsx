@@ -2,7 +2,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 // Menambahkan import 'PenTool' untuk ikon Request
@@ -54,7 +54,11 @@ export default function HomePage() {
   }
   
   if (status === 'unauthenticated') {
-    return <LandingView />;
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-pink-50" />}>
+        <LandingView />
+      </Suspense>
+    );
   }
 
   // --- PEMBARUAN DI SINI: Menambahkan Kategori 'Request' ---
@@ -84,51 +88,152 @@ export default function HomePage() {
           className="relative overflow-hidden rounded-[2.5rem] shadow-2xl shadow-pink-500/10 group"
         >
           <div className="absolute inset-0 bg-white/40 backdrop-blur-xl border border-white/60 z-0"></div>
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-pink-400/20 to-purple-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-pink-400/20 to-purple-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 animate-pulse"></div>
+          
+          {/* Floating Particles Animation */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+             {[...Array(6)].map((_, i) => (
+                <motion.div
+                   key={i}
+                   className="absolute bg-white/40 rounded-full blur-sm"
+                   initial={{ 
+                      x: Math.random() * 100 + "%", 
+                      y: Math.random() * 100 + "%", 
+                      scale: Math.random() * 0.5 + 0.5,
+                      opacity: 0.3
+                   }}
+                   animate={{ 
+                      y: [null, Math.random() * -100 + "px"],
+                      x: [null, (Math.random() - 0.5) * 50 + "px"],
+                      opacity: [0.3, 0.6, 0.3]
+                   }}
+                   transition={{ 
+                      duration: Math.random() * 5 + 5, 
+                      repeat: Infinity, 
+                      ease: "linear"
+                   }}
+                   style={{
+                      width: Math.random() * 20 + 10 + "px",
+                      height: Math.random() * 20 + 10 + "px",
+                   }}
+                />
+             ))}
+          </div>
 
           <div className="relative z-10 p-8 md:p-14 flex flex-col items-center text-center space-y-6">
              <motion.div 
                initial={{ scale: 0.9, opacity: 0 }}
                animate={{ scale: 1, opacity: 1 }}
                transition={{ delay: 0.2 }}
-               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 border border-pink-100 shadow-sm backdrop-blur-md"
+               className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-white/60 border border-white/60 shadow-sm backdrop-blur-md mb-6"
              >
-                <Sparkles className="w-4 h-4 text-yellow-500 fill-yellow-500 animate-pulse" />
-                <span className="text-xs font-bold uppercase tracking-widest text-stone-500">
-                  Selamat Datang, {session?.user?.name?.split(' ')[0]}
+                <Sparkles className="w-4 h-4 text-pink-600 animate-[spin_4s_linear_infinite]" />
+                <span className="text-sm font-bold uppercase tracking-[0.2em] text-pink-900/80">
+                  SELAMAT DATANG
                 </span>
              </motion.div>
 
-             <h1 className="text-4xl md:text-6xl font-lora font-bold text-stone-800 leading-tight">
-               Temukan Kilau <br className="hidden md:block" />
-               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-500 to-rose-500">
-                 Gaya Unikmu.
-               </span>
-             </h1>
-
-             <p className="text-lg text-stone-600 max-w-xl mx-auto leading-relaxed">
-               Koleksi aksesoris handmade eksklusif yang dirancang untuk menyempurnakan setiap momen bahagiamu.
-             </p>
-
-             <div className="w-full max-w-lg relative group/search mt-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-300 to-purple-300 rounded-full blur opacity-20 group-hover/search:opacity-40 transition-opacity duration-500"></div>
-                <div className="relative flex items-center bg-white/80 backdrop-blur-md rounded-full px-2 py-2 border border-white shadow-lg transition-transform transform group-hover/search:scale-[1.02]">
-                   <div className="pl-4 text-stone-400">
-                      <Search size={20} />
-                   </div>
-                   <Input 
-                      placeholder="Cari 'Gelang Mutiara'..." 
-                      className="border-none shadow-none focus-visible:ring-0 bg-transparent h-10 text-base px-3"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                   />
-                   <Button size="icon" className="rounded-full bg-stone-900 hover:bg-pink-600 text-white w-10 h-10 shadow-md transition-colors">
-                      <ArrowRight size={18} />
-                   </Button>
-                </div>
+             <div className="relative z-10">
+                <motion.h1 
+                  className="text-5xl md:text-7xl font-lora font-bold text-stone-900 leading-tight tracking-tighter mb-4 relative drop-shadow-sm"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  Celle<span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 font-serif italic pr-2">beads</span>.
+                </motion.h1>
+                
+                {/* Decorative underline */}
+                <motion.div 
+                   initial={{ width: 0 }}
+                   animate={{ width: "80px" }}
+                   transition={{ duration: 1, delay: 0.8 }}
+                   className="h-1.5 bg-stone-800 mx-auto rounded-full mb-8 opacity-80"
+                ></motion.div>
              </div>
+
+             <motion.p
+               className="text-lg md:text-xl text-stone-600 max-w-2xl mx-auto leading-relaxed mb-10 font-medium"
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               transition={{ duration: 0.8, delay: 0.5 }}
+             >
+               Beauty in every bead, stories in every strand. <br/>
+               <span className="italic text-stone-500 font-normal">Menyempurnakan setiap momen berhargamu.</span>
+             </motion.p>
+
+             <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.7 }}
+                className="w-full max-w-2xl p-8 rounded-[2rem] bg-gradient-to-br from-white/60 to-white/30 backdrop-blur-md border border-white/80 shadow-[0_10px_40px_rgba(255,192,203,0.2)] relative group overflow-hidden hover:shadow-[0_15px_50px_rgba(255,192,203,0.3)] transition-shadow duration-500"
+             >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-60"></div>
+                <div className="relative z-10">
+                   <p className="text-lg font-lora text-stone-800 leading-loose italic">
+                      "Selamat datang di dunia Cellebeads. Kami menghadirkan aksesoris manik 
+                      <span className="font-bold text-pink-700 mx-1 not-italic border-b-2 border-pink-200">100% buatan tangan</span>
+                      dengan desain yang siap mewarnai harimu. Temukan kilau unikmu di sini."
+                   </p>
+                </div>
+             </motion.div>
           </div>
         </motion.div>
+
+
+        {/* KEY FEATURES SECTION (NEW) */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+           {/* Feature 1 */}
+           <motion.div 
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ delay: 0.1 }}
+             className="bg-white/60 backdrop-blur-xl border border-white/50 p-8 rounded-[2.5rem] text-center hover:shadow-xl hover:shadow-pink-100 transition-all duration-300 group"
+           >
+              <div className="w-16 h-16 mx-auto mb-6 bg-pink-100/80 rounded-2xl flex items-center justify-center text-pink-600 group-hover:scale-110 transition-transform duration-300">
+                 <PenTool size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-stone-900 mb-3">100% Handmade</h3>
+              <p className="text-stone-500 text-sm leading-relaxed">
+                Setiap gelang dan kalung dirangkai satu per satu dengan ketelitian tinggi oleh pengrajin kami.
+              </p>
+           </motion.div>
+
+           {/* Feature 2 */}
+           <motion.div 
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ delay: 0.2 }}
+             className="bg-white/60 backdrop-blur-xl border border-white/50 p-8 rounded-[2.5rem] text-center hover:shadow-xl hover:shadow-purple-100 transition-all duration-300 group"
+           >
+              <div className="w-16 h-16 mx-auto mb-6 bg-purple-100/80 rounded-2xl flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform duration-300">
+                 <Sparkles size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-stone-900 mb-3">Desain Unik</h3>
+              <p className="text-stone-500 text-sm leading-relaxed">
+                Kombinasi warna dan model yang <em>fresh</em>, mengikuti tren terkini namun tetap <em>timeless</em>.
+              </p>
+           </motion.div>
+
+           {/* Feature 3 */}
+           <motion.div 
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ delay: 0.3 }}
+             className="bg-white/60 backdrop-blur-xl border border-white/50 p-8 rounded-[2.5rem] text-center hover:shadow-xl hover:shadow-teal-100 transition-all duration-300 group"
+           >
+              <div className="w-16 h-16 mx-auto mb-6 bg-teal-100/80 rounded-2xl flex items-center justify-center text-teal-600 group-hover:scale-110 transition-transform duration-300">
+                 <Gem size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-stone-900 mb-3">Kualitas Terbaik</h3>
+              <p className="text-stone-500 text-sm leading-relaxed">
+                Menggunakan bahan manik, tali, dan pengait premium yang awet dan nyaman dipakai.
+              </p>
+           </motion.div>
+        </section>
 
         {/* KATEGORI PILIHAN */}
         <section>

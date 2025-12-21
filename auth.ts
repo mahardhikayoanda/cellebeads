@@ -17,7 +17,7 @@ export const {
   // [WAJIB] Kita tulis ulang config pages di sini untuk memastikan terbaca oleh API
   pages: {
     signIn: '/login',
-    error: '/login', // Redirect semua error (termasuk Cancel Google) ke /login
+    error: '/', // Redirect semua error (termasuk Cancel Google) ke /
   },
 
   providers: [

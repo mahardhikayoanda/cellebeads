@@ -5,7 +5,7 @@ export const authConfig = {
   // [WAJIB] Definisi pages di sini agar dikenali Middleware & Server
   pages: {
     signIn: '/login', 
-    error: '/login', // Redirect semua error (termasuk Cancel Google) ke /login
+    error: '/', // Redirect semua error (termasuk Cancel Google) ke /
   },
   session: { strategy: "jwt" },
   providers: [], 

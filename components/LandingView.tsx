@@ -5,6 +5,8 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { Sparkles, Heart, ArrowRight, Loader2 } from 'lucide-react';
 
 // --- KONFIGURASI ANIMASI GELEMBUNG (MANIK-MANIK MELAYANG) ---
@@ -67,6 +69,18 @@ export default function LandingView() {
   const [isLoading, setIsLoading] = useState(false);
   // State untuk mencegah hydration error pada animasi random
   const [isMounted, setIsMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const error = searchParams.get('error');
+
+  useEffect(() => {
+    if (error) {
+      toast.error("Gagal Masuk", {
+        description: "Terjadi kesalahan saat otentikasi. Silakan coba lagi.",
+      });
+      // Bersihkan URL (opsional, tapi bagus untuk UX)
+      window.history.replaceState({}, '', '/');
+    }
+  }, [error]);
 
   useEffect(() => {
     setIsMounted(true);
