@@ -17,10 +17,11 @@ const OrderSchema = new Schema({
     address: { type: String, required: true },
     phone: { type: String, required: true },
     paymentMethod: { type: String, enum: ['cash', 'transfer', 'qris'], required: true },
+    paymentProof: { type: String }, // URL bukti pembayaran
   },
   status: {
     type: String,
-    enum: ['pending', 'processed', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'processed', 'shipped', 'delivered', 'completed', 'cancelled'],
     default: 'pending',
   },
   isPaid: { type: Boolean, default: false },

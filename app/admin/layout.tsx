@@ -8,7 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils'; 
 import { 
   LayoutDashboard, ShoppingBag, BarChart, Star, 
-  LogOut, Menu, Store, Sparkles, ClipboardList, Gem, Heart, ArrowUpRight
+  LogOut, Menu, Store, Sparkles, ClipboardList, Gem, Heart, ArrowUpRight,
+  ChevronDown, FileText, History
 } from 'lucide-react'; 
 import { signOut, useSession } from 'next-auth/react';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -28,6 +29,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname(); 
   const { data: session } = useSession();
   const [counts, setCounts] = useState({ orders: 0, reviews: 0 });
+  const [openMenus, setOpenMenus] = useState<string[]>(['Keuangan']); // Default open Keuangan
+
+  const toggleMenu = (label: string) => {
+    setOpenMenus(prev => 
+      prev.includes(label) ? prev.filter(item => item !== label) : [...prev, label]
+    );
+  };
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -50,7 +58,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/products', label: 'Koleksi', icon: Gem }, 
     { href: '/admin/stock', label: 'Stok', icon: ClipboardList }, 
     { href: '/admin/orders', label: 'Pesanan', icon: ShoppingBag, count: counts.orders },
-    { href: '/admin/sales-history', label: 'Keuangan', icon: BarChart },
+    
+    // GROUP KEUANGAN
+    { 
+      label: 'Keuangan', 
+      icon: BarChart,
+      children: [
+        { href: '/admin/sales-history', label: 'Riwayat Transaksi', icon: History },
+        { href: '/admin/reports', label: 'Laporan PDF', icon: FileText }
+      ]
+    },
+
     { href: '/admin/reviews', label: 'Ulasan', icon: Star, count: counts.reviews },
   ];
 
@@ -67,14 +85,67 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-bold mt-1">Admin Panel</p>
         </div>
         
-        {/* Navigation (Termasuk Menu Tambahan) */}
+        {/* Navigation */}
         <nav className="grow px-4 space-y-2 overflow-y-auto scrollbar-hide py-4">
           
-          {/* Menu Utama */}
           {navLinks.map((link) => {
-            const isActive = link.exact ? pathname === link.href : pathname.startsWith(link.href);
+            // LOGIKA RENDER DROPDOWN (JIKA ADA CHILDREN)
+            if (link.children) {
+               const isOpen = openMenus.includes(link.label);
+               const isChildActive = link.children.some(child => pathname.startsWith(child.href));
+               
+               return (
+                 <div key={link.label} className="overflow-hidden mb-1">
+                    <button 
+                      onClick={() => toggleMenu(link.label)}
+                      className={cn(
+                        "w-full flex items-center justify-between px-5 py-4 rounded-2xl text-sm font-medium transition-all duration-300 group hover:bg-white/60 text-stone-600",
+                        isChildActive ? "bg-white/40 text-pink-600" : ""
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                         <link.icon size={20} className={cn("transition-colors", isChildActive ? "text-pink-600" : "text-stone-400 group-hover:text-pink-500")} />
+                         <span className={isChildActive ? "font-bold" : ""}>{link.label}</span>
+                      </span>
+                      <ChevronDown size={16} className={cn("transition-transform duration-300 text-stone-400", isOpen ? "rotate-180" : "")} />
+                    </button>
+
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="pl-4 space-y-1 pt-1"
+                        >
+                           {link.children.map(child => {
+                              const isActive = pathname === child.href;
+                              return (
+                                <Link key={child.href} href={child.href}>
+                                  <div className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all relative overflow-hidden",
+                                    isActive 
+                                      ? "text-white bg-gradient-to-r from-pink-600 to-rose-500 shadow-md" 
+                                      : "text-stone-500 hover:text-pink-600 hover:bg-white/50"
+                                  )}>
+                                     {child.icon && <child.icon size={16} className={isActive ? "text-white" : "opacity-70"} />}
+                                     <span className={isActive ? "font-bold" : "font-medium"}>{child.label}</span>
+                                  </div>
+                                </Link>
+                              )
+                           })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                 </div>
+               );
+            }
+
+            // LOGIKA RENDER LINK BIASA
+            const isActive = link.exact ? pathname === link.href : pathname.startsWith(link.href || '');
             return (
-              <Link key={link.href} href={link.href}>
+              <Link key={link.href} href={link.href!}>
                 <div className={cn(
                   "relative flex items-center justify-between px-5 py-4 rounded-2xl text-sm font-medium transition-all duration-500 group overflow-hidden",
                   isActive 
@@ -111,9 +182,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Separator Halus */}
           <div className="my-2 h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent opacity-60" />
 
-          {/* --- Menu Tambahan (Disatukan dalam scroll) --- */}
-          
-          {/* Lihat Toko */}
+          {/* ... Sisa menu (Lihat Toko, Keluar) ... */}
           <Link href="/?view=preview" target="_blank">
             <div className={cn(
               "relative flex items-center justify-between px-5 py-4 rounded-2xl text-sm font-medium transition-all duration-500 group overflow-hidden",

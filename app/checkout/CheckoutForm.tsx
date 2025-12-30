@@ -142,7 +142,46 @@ export default function CheckoutForm() {
                   <SelectItem value="cash">Cash (Bayar di Tempat)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-stone-500 mt-2 ml-1">*Detail pembayaran akan dikirimkan melalui WhatsApp.</p>
+              
+              {/* TAMPILAN KHUSUS QRIS */}
+              {paymentMethod === 'qris' && (
+                  <motion.div 
+                     initial={{ opacity: 0, height: 0 }} 
+                     animate={{ opacity: 1, height: 'auto' }}
+                     className="mt-4 p-6 bg-white border border-stone-200 rounded-2xl shadow-sm text-center space-y-4"
+                  >
+                     <p className="text-sm font-bold text-stone-600">Scan QRIS untuk Membayar</p>
+                     <div className="bg-white p-3 rounded-xl border border-stone-100 inline-block shadow-inner">
+                        <div className="relative w-48 h-48 mx-auto overflow-hidden rounded-lg">
+                           <Image src="/qris-placeholder.svg" alt="QRIS Code" fill className="object-cover" />
+                        </div>
+                     </div>
+                     <div className="space-y-1">
+                        <p className="text-xs text-stone-500">Total Pembayaran</p>
+                        <p className="text-xl font-bold text-pink-600">Rp {total.toLocaleString('id-ID')}</p>
+                     </div>
+                     
+                     <div className="text-left w-full pt-4 border-t border-dashed border-stone-200">
+                        <Label htmlFor="paymentProof" className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-2 block">Upload Bukti Bayar (Wajib)</Label>
+                        <Input 
+                           id="paymentProof" 
+                           name="paymentProof" 
+                           type="file" 
+                           accept="image/*"
+                           required 
+                           className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100 h-12 pt-2 bg-stone-50"
+                        />
+                        <p className="text-[10px] text-stone-400 mt-1 italic">*Format: JPG/PNG. Pastikan nominal sesuai.</p>
+                     </div>
+                  </motion.div>
+              )}
+
+              {paymentMethod === 'transfer' && (
+                  <div className="mt-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100 text-sm text-blue-700">
+                     <p>⚠️ Silakan hubungi admin di WhatsApp setelah checkout untuk meminta nomor rekening.</p>
+                  </div>
+              )}
+
            </div>
         </div>
       </motion.div>

@@ -40,8 +40,8 @@ export async function getMyOrders(): Promise<IOrderWithReview[]> {
   return ordersWithReviewStatus;
 }
 
-// 2. MARK DELIVERED (Konfirmasi Terima Pesanan)
-export async function markOrderAsDelivered(orderId: string) {
+// 2. RECEIVE ORDER (Konfirmasi Terima Pesanan) - Shipped -> Delivered
+export async function receiveOrder(orderId: string) {
   const session = await auth();
   if (!session?.user) return { success: false, message: 'Akses ditolak' };
 
@@ -49,13 +49,19 @@ export async function markOrderAsDelivered(orderId: string) {
   try {
     const order = await Order.findOne({ _id: orderId, user: session.user.id });
     if (!order) return { success: false, message: 'Pesanan tidak ditemukan' };
+    
+    // Validasi: Hanya bisa terima jika status 'shipped'
+    if (order.status !== 'shipped') {
+        return { success: false, message: 'Pesanan belum dikirim admin atau sudah diterima.' };
+    }
 
     order.status = 'delivered'; 
     order.deliveredAt = new Date(); 
     await order.save();
     
     revalidatePath('/dashboard/my-orders');
-    return { success: true, message: 'Pesanan telah diterima' };
+    revalidatePath('/admin/orders');
+    return { success: true, message: 'Pesanan telah diterima. Terima kasih!' };
   } catch (error: any) {
     return { success: false, message: error.message };
   }

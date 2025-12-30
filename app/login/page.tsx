@@ -7,7 +7,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from "sonner"; 
 
 // 1. Pindahkan logika utama ke komponen terpisah (misalnya LoginForm)
@@ -30,6 +31,11 @@ function LoginForm() {
     }
   }, [error, router]);
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
@@ -42,21 +48,105 @@ function LoginForm() {
     }
   };
 
+  const handleManualLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (res?.error) {
+        toast.error("Gagal Masuk", {
+          description: "Email atau password salah",
+        });
+        setIsLoading(false);
+      } else {
+        router.push('/');
+        router.refresh();
+      }
+    } catch (error) {
+      toast.error("Terjadi Kesalahan", {
+        description: "Gagal menghubungkan ke server.",
+      });
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-col items-center text-center mb-8 mt-4">
+      <div className="flex flex-col items-center text-center mb-6 mt-4">
           <div className="w-20 h-20 relative mb-4 rounded-full overflow-hidden shadow-lg border-4 border-white">
               <Image src="/logo_celle.jpg" alt="Logo" fill className="object-cover" />
           </div>
-          <h1 className="text-2xl font-lora font-bold text-stone-800">Selamat Datang!</h1>
+          <h1 className="text-2xl font-lora font-bold text-stone-800">Selamat Datang</h1>
           <p className="text-stone-500 text-sm mt-1">Masuk untuk mulai belanja.</p>
       </div>
 
       <div className="space-y-4">
+          {/* Manual Login Form */}
+          <form onSubmit={handleManualLogin} className="space-y-3">
+             <div className="space-y-2">
+                <Input 
+                  type="email" 
+                  placeholder="Email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="rounded-xl border-stone-200 focus:border-pink-300 focus:ring-pink-100 bg-white/50 h-11"
+                />
+                
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="rounded-xl border-stone-200 focus:border-pink-300 focus:ring-pink-100 bg-white/50 h-11 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none bg-transparent"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                <div className="text-right">
+                    <Link href="/forgot-password" className="text-xs font-semibold text-pink-600 hover:text-pink-800 transition-colors">
+                        Lupa Password?
+                    </Link>
+                </div>
+             </div>
+             <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full h-11 rounded-xl bg-stone-900 hover:bg-pink-600 text-white font-bold shadow-md transition-all"
+             >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Masuk"}
+             </Button>
+          </form>
+
+          <div className="relative">
+             <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-stone-200"></span>
+             </div>
+             <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white/50 px-2 text-stone-400 font-medium tracking-wider">Atau</span>
+             </div>
+          </div>
+
           <Button 
               onClick={handleGoogleLogin} 
               disabled={isLoading}
-              className="w-full h-12 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold shadow-sm transition-all flex items-center justify-center gap-3 hover:border-pink-200 hover:text-pink-600 group"
+              variant="outline"
+              className="w-full h-11 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold shadow-sm transition-all flex items-center justify-center gap-3 hover:border-pink-200 hover:text-pink-600 group"
           >
               {isLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin text-pink-500" />
@@ -69,10 +159,14 @@ function LoginForm() {
                           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                       </svg>
-                      Lanjutkan dengan Google
+                      Masuk dengan Google
                   </>
               )}
           </Button>
+
+          <p className="text-center text-stone-500 text-sm mt-4">
+             Belum punya akun? <Link href="/register" className="text-pink-600 font-bold hover:underline">Daftar</Link>
+          </p>
       </div>
     </>
   );

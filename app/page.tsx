@@ -38,8 +38,8 @@ export default function HomePage() {
       setProductsToShow(data);
       setLoadingProducts(false);
     };
-    if (status === 'authenticated') fetchData();
-  }, [status]);
+    fetchData(); // Fetch Data langsung tanpa menunggu status login
+  }, []); // Run once on mount
 
   const filteredProducts = productsToShow.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -53,13 +53,7 @@ export default function HomePage() {
     );
   }
   
-  if (status === 'unauthenticated') {
-    return (
-      <Suspense fallback={<div className="min-h-screen bg-pink-50" />}>
-        <LandingView />
-      </Suspense>
-    );
-  }
+
 
   // --- PEMBARUAN DI SINI: Menambahkan Kategori 'Request' ---
   const categories = [

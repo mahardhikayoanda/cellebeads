@@ -1,4 +1,3 @@
-// File: app/admin/orders/actions.ts
 'use server';
 
 import dbConnect from '@/lib/dbConnect';
@@ -57,7 +56,7 @@ export async function getOrders(filter: string = 'all'): Promise<IOrder[]> {
   return JSON.parse(JSON.stringify(orders));
 }
 
-// ... (Fungsi confirmOrder dan deliverOrder biarkan tetap sama seperti sebelumnya)
+// 1. CONFIRM: Pending -> Processed (Stok Berkurang)
 export async function confirmOrder(orderId: string) {
   await dbConnect();
   const order = await Order.findById(orderId);
@@ -89,21 +88,40 @@ export async function confirmOrder(orderId: string) {
   }
 }
 
-export async function deliverOrder(orderId: string) {
+// 2. SHIP: Processed -> Shipped (Admin Kirim Barang)
+export async function shipOrder(orderId: string) {
   await dbConnect();
   try {
     const order = await Order.findById(orderId);
     if (!order) return { success: false, message: 'Pesanan tidak ditemukan' };
     if (order.status !== 'processed') {
-        return { success: false, message: 'Pesanan belum diproses' };
+        return { success: false, message: 'Pesanan belum diproses untuk dikirim' };
     }
-    order.status = 'delivered';
-    order.deliveredAt = new Date();
+    order.status = 'shipped';
     await order.save();
     revalidatePath('/admin/orders');
     revalidatePath('/dashboard/my-orders'); 
-    return { success: true, message: 'Pesanan ditandai selesai' };
+    return { success: true, message: 'Status diubah menjadi DIKIRIM' };
   } catch (error: any) {
     return { success: false, message: error.message || 'Gagal update pesanan' };
+  }
+}
+
+// 3. COMPLETE: Delivered -> Completed (Admin Selesaikan Final)
+export async function completeOrder(orderId: string) {
+  await dbConnect();
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) return { success: false, message: 'Pesanan tidak ditemukan' };
+    if (order.status !== 'delivered') {
+        return { success: false, message: 'Pesanan belum diterima oleh pelanggan' };
+    }
+    order.status = 'completed';
+    await order.save();
+    revalidatePath('/admin/orders');
+    revalidatePath('/dashboard/my-orders'); 
+    return { success: true, message: 'Pesanan selesai sepenuhnya!' };
+  } catch (error: any) {
+    return { success: false, message: error.message || 'Gagal menyelesaikan pesanan' };
   }
 }

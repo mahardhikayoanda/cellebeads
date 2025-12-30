@@ -16,8 +16,12 @@ export default function OrderTable({ orders }: { orders: IOrder[] }) {
         return <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><Clock size={12}/> Menunggu</Badge>;
       case 'processed':
         return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><Truck size={12}/> Diproses</Badge>;
+      case 'shipped':
+        return <Badge className="bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><Truck size={12}/> Dikirim</Badge>;
       case 'delivered':
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><CheckCircle2 size={12}/> Selesai</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200 pl-1 pr-3 py-1 gap-1 shadow-sm"><CheckCircle2 size={12}/> Diterima</Badge>;
+      case 'completed':
+        return <Badge className="bg-stone-800 text-white border-stone-700 hover:bg-stone-700 pl-1 pr-3 py-1 gap-1 shadow-sm"><CheckCircle2 size={12}/> Selesai</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }

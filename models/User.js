@@ -18,8 +18,10 @@ const UserSchema = new Schema({
   bio: { type: String },
   address: { type: String },
   authProvider: { type: String, default: 'credentials' }, 
-  profileComplete: { type: Boolean, default: false } 
-}, { timestamps: true });
+  profileComplete: { type: Boolean, default: false },
+  resetPasswordToken: { type: String },
+  resetPasswordExpire: { type: Date } 
+}, { timestamps: true, strict: false }); // [MODIFIED] Strict false untuk memastikan fields baru bisa disimpan
 
 // Hash password sebelum save
 UserSchema.pre('save', async function(next) {

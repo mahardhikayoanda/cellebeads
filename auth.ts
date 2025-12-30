@@ -39,12 +39,13 @@ export const {
         await dbConnect();
         const user = await User.findOne({ email: credentials.email as string });
 
-        if (user && user.authProvider === 'credentials' && (await user.matchPassword(credentials.password as string))) {
+        // [MODIFIED] Hapus cek 'authProvider === credentials' agar user Google yang sudah set password bisa login
+        if (user && (await user.matchPassword(credentials.password as string))) {
           return { 
               id: user._id.toString(), 
               name: user.name, 
               email: user.email, 
-              role: user.role,
+              role: user.role, 
               profileComplete: user.profileComplete 
           };
         }

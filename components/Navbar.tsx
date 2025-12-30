@@ -51,15 +51,16 @@ export default function Navbar() {
   });
 
   // --- LOGIKA SEMBUNYIKAN NAVBAR ---
-  // 1. Sembunyikan di halaman admin (sudah ada)
+  // 1. Sembunyikan di halaman admin
   if (pathname?.startsWith('/admin')) return null;
 
-  // 2. [BARU] Sembunyikan di Halaman Utama (Landing) jika belum login
-  // Sesuai permintaan gambar (lingkaran merah)
-  if (pathname === '/' && status === 'unauthenticated') {
-    return null;
-  }
-  // ---------------------------------
+  // 2. Sembunyikan di halaman Auth (Login, Register, Forgot Password, Reset Password)
+  const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
+  if (authRoutes.includes(pathname || '')) return null;
+
+  // 2. [HAPUS] Logika sembunyikan di halaman utama jika unauthenticated dihapus
+  // agar navbar tetap muncul.
+  // if (pathname === '/' && status === 'unauthenticated') { ... }
 
   const userName = session?.user?.name || "Tamu";
   const getInitials = (name: string) => name.charAt(0).toUpperCase();
@@ -128,23 +129,39 @@ export default function Navbar() {
           
           {/* A. Tombol Cart */}
           {(!session || (session.user as any).role !== 'admin') && (
-            <Link href="/cart">
-              <div className="relative group/cart">
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-pink-50 hover:text-pink-600 text-stone-600 transition-all">
-                  <ShoppingCart className="w-5 h-5" />
-                </Button>
-                <AnimatePresence>
-                  {totalItems > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                      className="absolute top-0 right-0 -mt-1 -mr-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
-                    >
-                      {totalItems}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            </Link>
+            <div 
+              onClick={() => {
+                 if(!session) {
+                    // toast.error("Silakan Login Dahulu"); // Optional, router push cukup
+                    window.location.href = '/login'; 
+                 }
+              }}
+              className="cursor-pointer"
+            >
+              <Link href={session ? "/cart" : "/login"} onClick={(e) => {
+                  if(!session) {
+                      e.preventDefault(); 
+                      // Redirect handled by parent div or just here
+                      // Using Link to /login is actually cleaner but user asked for "System prompts login"
+                  }
+              }}>
+                <div className="relative group/cart">
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-pink-50 hover:text-pink-600 text-stone-600 transition-all">
+                    <ShoppingCart className="w-5 h-5" />
+                  </Button>
+                  <AnimatePresence>
+                    {totalItems > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                        className="absolute top-0 right-0 -mt-1 -mr-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
+                      >
+                        {totalItems}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </Link>
+            </div>
           )}
 
           {/* B. Tombol 'Pesanan Saya' (NEW: Terletak di sini, khusus customer) */}
@@ -164,7 +181,7 @@ export default function Navbar() {
              </Link>
           )}
 
-          {/* C. Profile Dropdown */}
+          {/* C. Profile Dropdown OR Login/Register */}
           {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -186,11 +203,8 @@ export default function Navbar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-pink-100/50" />
                 
-                {/* MENU CUSTOMER - Pesanan Saya & Profil Saya dihapus dari sini */}
-                {/* Karena sudah ada di Navbar (ikon Package) & User Icon (klik avatar itu sendiri) */}
                 {(session.user as any).role === 'customer' && (
                    <>
-                      {/* Opsional: Tambahkan kembali link Profil jika ingin eksplisit */}
                       <DropdownMenuItem asChild className="rounded-xl cursor-pointer focus:bg-pink-50 focus:text-pink-700">
                         <Link href="/profile" className="flex items-center gap-2"><User size={16}/> Profil Saya</Link>
                       </DropdownMenuItem>
@@ -207,9 +221,16 @@ export default function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild size="sm" className="rounded-full bg-stone-900 hover:bg-pink-600 text-white font-bold px-6 shadow-md transition-all hover:-translate-y-0.5 ml-2">
-              <Link href="/login">Masuk</Link>
-            </Button>
+            <div className="flex items-center gap-2 ml-2">
+               {/* Tombol Masuk */}
+               <Button asChild variant="ghost" size="sm" className="rounded-full text-stone-700 hover:bg-stone-100 hover:text-stone-900 font-bold px-4 transition-all">
+                  <Link href="/login">Masuk</Link>
+               </Button>
+               {/* Tombol Daftar */}
+               <Button asChild size="sm" className="rounded-full bg-stone-900 hover:bg-pink-600 text-white font-bold px-5 shadow-md transition-all hover:-translate-y-0.5">
+                  <Link href="/register">Daftar</Link>
+               </Button>
+            </div>
           )}
 
           {/* Mobile Menu Trigger */}

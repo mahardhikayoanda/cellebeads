@@ -2,7 +2,7 @@
 'use client';
 import { useState } from 'react';
 import { IOrderWithReview } from './actions';
-import { markOrderAsDelivered, submitReview } from './actions';
+import { receiveOrder, submitReview } from './actions';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card"; 
 import { Star, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner'; // <--- IMPORT BARU
+import { toast } from 'sonner';
 
 interface Props { order: IOrderWithReview; }
 
@@ -23,11 +23,11 @@ export default function OrderActionsClient({ order }: Props) {
 
   const handleDelivered = async () => {
     setIsLoading(true);
-    const result = await markOrderAsDelivered(order._id);
+    const result = await receiveOrder(order._id);
     if (result.success) {
-        toast.success("Status pesanan diperbarui!"); // <--- Toast Sukses
+        toast.success(result.message); 
     } else {
-        toast.error(result.message); // <--- Toast Error
+        toast.error(result.message); 
     }
     setIsLoading(false);
   };
@@ -42,32 +42,36 @@ export default function OrderActionsClient({ order }: Props) {
     const result = await submitReview(formData);
     
     if (result.success) {
-      toast.success("Ulasan terkirim! Terima kasih."); // <--- Toast Sukses
+      toast.success("Ulasan terkirim! Terima kasih."); 
       setShowReviewForm(null);
     } else {
-      toast.error("Gagal: " + (result.message || 'Terjadi kesalahan')); // <--- Toast Error
+      toast.error("Gagal: " + (result.message || 'Terjadi kesalahan'));
     }
     setIsLoading(false);
   };
 
-  // ... (SISA KODE RENDER JSX TETAP SAMA, TIDAK ADA PERUBAHAN)
-  // 6. Tombol Pesanan Diterima (Jika status 'processed')
-  if (order.status === 'processed') {
+  // ... (review logic same)
+
+  // 6. Tombol Pesanan Diterima (HANYA MUNCUL JIKA STATUS 'SHIPPED')
+  if (order.status === 'shipped') {
     return (
       <Button onClick={handleDelivered} disabled={isLoading} size="sm" 
-              className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all">
         {isLoading ? '...' : 'Pesanan Diterima'} 
       </Button>
     );
   }
 
-  // 7. TAMPILAN "PESANAN SELESAI" (Baru)
-  if (order.status === 'delivered' && order.isReviewed) {
-      return (
-          <span className="flex items-center justify-center text-emerald-600 font-medium text-sm">
-              <CheckCircle className="w-4 h-4 mr-1" /> Pesanan Selesai
-          </span>
-      );
+  // 7. Status Delivered/Completed
+  if (['delivered', 'completed'].includes(order.status)) {
+      if (order.isReviewed) {
+         return (
+             <span className="flex items-center justify-center text-emerald-600 font-medium text-sm">
+                 <CheckCircle className="w-4 h-4 mr-1" /> Selesai
+             </span>
+         );
+      }
+      // Lanjut ke Form Review di bawah jika belum review
   }
 
   // 8. Tombol & Form Ulasan (Jika 'delivered' TAPI 'isReviewed' false)

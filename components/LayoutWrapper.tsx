@@ -13,27 +13,32 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isAdmin = pathname?.startsWith('/admin');
   
   // Deteksi kondisi Landing Page (Halaman Depan & Belum Login)
-  // Di halaman ini, Footer & Navbar akan disembunyikan
   const isLandingPage = pathname === '/' && status === 'unauthenticated';
+
+  // Deteksi Halaman Auth (Login, Register, dll) -> Full Screen, No Padding, No Footer
+  const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
+  const isAuthPage = authRoutes.includes(pathname || '');
+
+  const isFullScreen = isAdmin || isLandingPage || isAuthPage;
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar sudah otomatis hidden di Landing Page via logikanya sendiri */}
+      {/* Navbar di-handle internal logic-nya sendiri (hidden di admin/auth) */}
       <Navbar />
       
       {/* Main Content */}
       <main className={cn(
         "flex-grow w-full mx-auto",
-        (isAdmin || isLandingPage) 
-          ? "p-0" // Full screen tanpa padding untuk Admin & Landing Page
+        isFullScreen
+          ? "p-0" // Full screen tanpa padding
           : "pt-28 pb-12 px-4 md:px-8 max-w-[1920px]"
       )}>
         {children}
       </main>
 
       {/* --- FOOTER --- */}
-      {/* Footer HANYA muncul jika: BUKAN Admin DAN BUKAN Landing Page */}
-      {(!isAdmin && !isLandingPage) && (
+      {/* Footer HANYA muncul jika: BUKAN Admin DAN BUKAN Landing Page DAN BUKAN Auth Page */}
+      {(!isAdmin && !isLandingPage && !isAuthPage) && (
         <footer className="bg-white border-t border-stone-200 py-6 mt-auto">
           <div className="container mx-auto px-4 text-center">
              <p className="text-sm text-stone-500">
